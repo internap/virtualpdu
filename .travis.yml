@@ -1,9 +1,14 @@
-sudo: false
+sudo: required
+dist: trusty
 language: python
 
 python:
   - "2.7"
   - "3.4"
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libvirt-dev
 
 install:
   - pip install tox-travis
