@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = virtualpdu
+omit = virtualpdu/openstack/*
+
+[report]
+ignore_errors = True
