@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-class DeviceProvider(object):
+class Driver(object):
     def power_on(self, name):
         raise NotImplementedError()
 

@@ -16,13 +16,13 @@ from contextlib import closing
 
 import libvirt
 
-from virtualpdu import device_provider
+from virtualpdu import drivers
 
 DOMAIN_NOT_FOUND_MESSAGES = ['virDomainLookupByName() failed',
                              'Domain not found']
 
 
-class LibvirtDeviceProvider(device_provider.DeviceProvider):
+class LibvirtDriver(drivers.Driver):
     def __init__(self, uri):
         self.uri = uri
 
@@ -54,5 +54,5 @@ def safe_lookup_by_name(connection, name):
         return domain
 
 
-class LibvirtDomainNotFound(device_provider.DeviceNotFound):
+class LibvirtDomainNotFound(drivers.DeviceNotFound):
     pass

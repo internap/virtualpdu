@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from virtualpdu.device_provider import DeviceNotFound
-from virtualpdu.libvirt_device_provider import LibvirtDeviceProvider
+from virtualpdu.drivers import DeviceNotFound
+from virtualpdu.drivers.libvirt_driver import LibvirtDriver
 from virtualpdu.tests import base
 
 
@@ -22,17 +22,17 @@ LIBVIRT_TEST_PROVIDER = 'test:///default'
 
 class TestLibvirtDeviceProviderIntegration(base.TestCase):
     def test_power_on(self):
-        provider = LibvirtDeviceProvider(uri=LIBVIRT_TEST_PROVIDER)
+        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
         provider.power_on('test')
 
     def test_power_off(self):
-        provider = LibvirtDeviceProvider(uri=LIBVIRT_TEST_PROVIDER)
+        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
         provider.power_off('test')
 
     def test_power_on_domain_not_found(self):
-        provider = LibvirtDeviceProvider(uri=LIBVIRT_TEST_PROVIDER)
+        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
         self.assertRaises(DeviceNotFound, provider.power_on, 'i-dont-exist')
 
     def test_power_off_domain_not_found(self):
-        provider = LibvirtDeviceProvider(uri=LIBVIRT_TEST_PROVIDER)
+        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
         self.assertRaises(DeviceNotFound, provider.power_off, 'i-dont-exist')

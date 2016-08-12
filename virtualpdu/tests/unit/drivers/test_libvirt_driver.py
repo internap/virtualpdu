@@ -14,23 +14,23 @@
 
 import libvirt
 from mock import mock
-from virtualpdu.device_provider import DeviceNotFound
-from virtualpdu.libvirt_device_provider import LibvirtDeviceProvider
+from virtualpdu.drivers import DeviceNotFound
+from virtualpdu.drivers.libvirt_driver import LibvirtDriver
 from virtualpdu.tests import base
 
 DOMAIN_ALREADY_RUNNING = "internal error: Domain '%s' is already running"
 
 
 @mock.patch('libvirt.open', autospec=True)
-class TestLibvirtDeviceProvider(base.TestCase):
+class TestLibvirtDriver(base.TestCase):
     def test_power_on(self, mock_open):
         domain_mock = mock.Mock()
         connection_mock = mock.Mock()
         connection_mock.lookupByName.return_value = domain_mock
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        provider.power_on('domainA')
+        driver = LibvirtDriver(uri='hello')
+        driver.power_on('domainA')
 
         mock_open.assert_called_with('hello')
         connection_mock.lookupByName.assert_called_with('domainA')
@@ -43,8 +43,8 @@ class TestLibvirtDeviceProvider(base.TestCase):
         connection_mock.lookupByName.return_value = domain_mock
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        provider.power_off('domainA')
+        driver = LibvirtDriver(uri='hello')
+        driver.power_off('domainA')
 
         mock_open.assert_called_with('hello')
         connection_mock.lookupByName.assert_called_with('domainA')
@@ -58,8 +58,8 @@ class TestLibvirtDeviceProvider(base.TestCase):
                                  conn=connection_mock)
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        self.assertRaises(DeviceNotFound, provider.power_on, 'domainA')
+        driver = LibvirtDriver(uri='hello')
+        self.assertRaises(DeviceNotFound, driver.power_on, 'domainA')
 
         connection_mock.close.assert_called_with()
 
@@ -70,8 +70,8 @@ class TestLibvirtDeviceProvider(base.TestCase):
                                  conn=connection_mock)
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        self.assertRaises(DeviceNotFound, provider.power_off, 'domainA')
+        driver = LibvirtDriver(uri='hello')
+        self.assertRaises(DeviceNotFound, driver.power_off, 'domainA')
 
         connection_mock.close.assert_called_with()
 
@@ -87,8 +87,8 @@ class TestLibvirtDeviceProvider(base.TestCase):
                                  conn=connection_mock)
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        provider.power_on(domain_name)
+        driver = LibvirtDriver(uri='hello')
+        driver.power_on(domain_name)
 
         connection_mock.close.assert_called_with()
 
@@ -100,8 +100,8 @@ class TestLibvirtDeviceProvider(base.TestCase):
         domain_mock.create.side_effect = SpecificException()
         mock_open.return_value = connection_mock
 
-        provider = LibvirtDeviceProvider(uri='hello')
-        self.assertRaises(SpecificException, provider.power_on, 'domainA')
+        driver = LibvirtDriver(uri='hello')
+        self.assertRaises(SpecificException, driver.power_on, 'domainA')
 
         connection_mock.close.assert_called_with()
 
