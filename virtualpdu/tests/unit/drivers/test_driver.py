@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from virtualpdu.device_provider import DeviceProvider
+from virtualpdu.drivers import Driver
 from virtualpdu.tests import base
 
 
-class TestDeviceProvider(base.TestCase):
+class TestDriver(base.TestCase):
     def test_power_on(self):
-        provider = DeviceProvider()
-        self.assertRaises(NotImplementedError, provider.power_on, 'domainA')
+        driver = Driver()
+        self.assertRaises(NotImplementedError, driver.power_on, 'domainA')
 
     def test_power_off(self):
-        provider = DeviceProvider()
-        self.assertRaises(NotImplementedError, provider.power_off, 'domainA')
+        driver = Driver()
+        self.assertRaises(NotImplementedError, driver.power_off, 'domainA')
