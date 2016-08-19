@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-POWER_ON = 'POWER_ON'
-POWER_OFF = 'POWER_OFF'
-REBOOT = 'REBOOT'
+from virtualpdu import core
+
+# TODO(mmitchell): Refactor the imports around to remove this file.
+POWER_ON = core.POWER_ON
+POWER_OFF = core.POWER_OFF
+REBOOT = core.REBOOT
