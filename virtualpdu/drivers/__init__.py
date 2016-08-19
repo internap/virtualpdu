@@ -20,6 +20,13 @@ class Driver(object):
     def power_off(self, name):
         raise NotImplementedError()
 
+    def get_power_state(self, name):
+        raise NotImplementedError()
+
 
 class DeviceNotFound(Exception):
     pass
+
+
+POWER_ON = 'POWER_ON'
+POWER_OFF = 'POWER_OFF'

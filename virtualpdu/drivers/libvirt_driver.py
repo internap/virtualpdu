@@ -21,6 +21,11 @@ from virtualpdu import drivers
 DOMAIN_NOT_FOUND_MESSAGES = ['virDomainLookupByName() failed',
                              'Domain not found']
 
+POWER_STATES_MAPPING = {
+    0: drivers.POWER_OFF,
+    1: drivers.POWER_ON,
+}
+
 
 class LibvirtDriver(drivers.Driver):
     def __init__(self, uri):
@@ -40,8 +45,38 @@ class LibvirtDriver(drivers.Driver):
             domain = safe_lookup_by_name(connection, name)
             domain.destroy()
 
+    def get_power_state(self, name):
+        with self._connect() as connection:
+            domain = safe_lookup_by_name(connection, name)
+            return POWER_STATES_MAPPING[domain.isActive()]
+
     def _connect(self):
         return closing(libvirt.open(self.uri))
+
+
+class KeepaliveLibvirtDriver(LibvirtDriver):
+    def __init__(self, uri):
+        super(KeepaliveLibvirtDriver, self).__init__(uri)
+        self.keepalive_connection_context = KeepaliveConnectionContext(
+            self.uri)
+
+    def _connect(self):
+        return self.keepalive_connection_context
+
+
+class KeepaliveConnectionContext(object):
+    def __init__(self, uri):
+        self.uri = uri
+        self.connection = None
+
+    def __enter__(self):
+        if not self.connection:
+            self.connection = libvirt.open(self.uri)
+
+        return self.connection
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
 
 def safe_lookup_by_name(connection, name):

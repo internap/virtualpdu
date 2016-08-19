@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from virtualpdu.drivers import DeviceNotFound
-from virtualpdu.drivers.libvirt_driver import LibvirtDriver
+from virtualpdu import drivers
+from virtualpdu.drivers import libvirt_driver
 from virtualpdu.tests import base
 
 
@@ -21,18 +21,32 @@ LIBVIRT_TEST_PROVIDER = 'test:///default'
 
 
 class TestLibvirtDeviceProviderIntegration(base.TestCase):
+    def setUp(self):
+        super(TestLibvirtDeviceProviderIntegration, self).setUp()
+        self.driver = libvirt_driver.KeepaliveLibvirtDriver(
+            uri=LIBVIRT_TEST_PROVIDER)
+        self.server_name = 'test'
+
     def test_power_on(self):
-        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
-        provider.power_on('test')
+        self.driver.power_on(self.server_name)
 
     def test_power_off(self):
-        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
-        provider.power_off('test')
+        self.driver.power_off(self.server_name)
+
+    def test_get_power_state(self):
+        self.driver.power_off(self.server_name)
+        self.assertEqual(drivers.POWER_OFF,
+                         self.driver.get_power_state(self.server_name))
+        
+        self.driver.power_on(self.server_name)
+        self.assertEqual(drivers.POWER_ON,
+                         self.driver.get_power_state(self.server_name))
 
     def test_power_on_domain_not_found(self):
-        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
-        self.assertRaises(DeviceNotFound, provider.power_on, 'i-dont-exist')
+        self.assertRaises(drivers.DeviceNotFound,
+                          self.driver.power_on, 'i-dont-exist')
 
     def test_power_off_domain_not_found(self):
-        provider = LibvirtDriver(uri=LIBVIRT_TEST_PROVIDER)
-        self.assertRaises(DeviceNotFound, provider.power_off, 'i-dont-exist')
+        self.assertRaises(drivers.DeviceNotFound,
+                          self.driver.power_off, 'i-dont-exist')
+
