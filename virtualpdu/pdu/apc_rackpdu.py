@@ -35,10 +35,11 @@ rPDU_power_mappings = {
 
 
 class APCRackPDUOutlet(PDUOutlet):
+    default_state = rPDU_power_mappings['immediateOn']
+
     def __init__(self, outlet_number, pdu):
         super(APCRackPDUOutlet, self).__init__(outlet_number, pdu)
         self.oid = rPDU_outlet_control_outlet_command + (self.outlet_number, )
-        self.value = rPDU_power_mappings['immediateOn']
 
 
 class APCRackPDU(PDU):
