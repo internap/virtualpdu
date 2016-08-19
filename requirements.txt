@@ -4,3 +4,4 @@
 
 pbr>=1.6 # Apache-2.0
 libvirt-python>=1.2.5 # LGPLv2+
+pysnmp==4.3.2 # BSD
