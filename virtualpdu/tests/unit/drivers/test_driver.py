@@ -24,3 +24,8 @@ class TestDriver(base.TestCase):
     def test_power_off(self):
         driver = Driver()
         self.assertRaises(NotImplementedError, driver.power_off, 'domainA')
+
+    def test_get_power_state(self):
+        driver = Driver()
+        self.assertRaises(NotImplementedError,
+                          driver.get_power_state, 'domainA')
