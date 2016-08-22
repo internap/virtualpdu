@@ -14,21 +14,12 @@
 
 from mock import mock
 from virtualpdu.pdu.apc_rackpdu import APCRackPDU
-from virtualpdu.power_states import POWER_OFF
 from virtualpdu.tests import base
+from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
 
-class TestAPCRackPDU(base.TestCase):
+class TestAPCRackPDU(base.TestCase, BasePDUTests):
     def setUp(self):
         super(TestAPCRackPDU, self).setUp()
         self.core_mock = mock.Mock()
         self.pdu = APCRackPDU(name='my_pdu', core=self.core_mock)
-
-    def test_changing_port_state_notifies_core(self):
-        self.pdu.oids[0].value = \
-            self.pdu.get_native_power_state_from_core(POWER_OFF)
-
-        self.core_mock.pdu_outlet_state_changed.assert_called_with(
-            name='my_pdu',
-            outlet_number=1,
-            state=POWER_OFF)
