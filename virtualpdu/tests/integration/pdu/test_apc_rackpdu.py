@@ -35,6 +35,8 @@ class TestAPCRackPDU(PDUTestCase):
         self.assertEqual(1, self.snmp_get(enterprises + rPDUControl + (7,)))
         self.assertEqual(1, self.snmp_get(enterprises + rPDUControl + (8,)))
 
+        self.assertFalse(self.core_mock.pdu_outlet_state_changed.called)
+
     def test_port_state_can_be_changed(self):
         enterprises = (1, 3, 6, 1, 4, 1)
         rPDUControl = (318, 1, 1, 12, 3, 3, 1, 1, 4)
