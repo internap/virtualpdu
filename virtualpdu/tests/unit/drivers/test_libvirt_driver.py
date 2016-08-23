@@ -128,8 +128,8 @@ class TestLibvirtDriver(base.TestCase):
         connection_mock.lookupByName.return_value = domain_mock
 
         domain_mock.create.side_effect = \
-            libvirt.libvirtError(DOMAIN_ALREADY_RUNNING.format(domain_name),
-                                 conn=connection_mock)
+            DumbLibvirtError(DOMAIN_ALREADY_RUNNING.format(domain_name),
+                             conn=connection_mock)
         mock_open.return_value = connection_mock
 
         self.driver.power_on(domain_name)
@@ -171,3 +171,14 @@ class TestKeepaliveLibvirtDriver(base.TestCase):
 
 class SpecificException(Exception):
     pass
+
+
+class DumbLibvirtError(libvirt.libvirtError):
+    def __init__(self, defmsg, conn=None, dom=None, net=None,
+                 pool=None, vol=None):
+        # NOTE(walhawari): Libvirt fetches "last error" and if that
+        #                  returns anything, defmsg is simply ignored.
+        #                  Work around this design limitation by creating an
+        #                  exception that derives from libvirtError but doesn't
+        #                  have this behavior.
+        Exception.__init__(self, defmsg)
