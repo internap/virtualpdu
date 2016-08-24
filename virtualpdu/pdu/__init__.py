@@ -14,9 +14,9 @@
 
 from pyasn1.type import univ
 
-from virtualpdu.power_states import POWER_OFF
-from virtualpdu.power_states import POWER_ON
-from virtualpdu.power_states import REBOOT
+from virtualpdu.core import POWER_OFF
+from virtualpdu.core import POWER_ON
+from virtualpdu.core import REBOOT
 
 
 class PDUOutlet(object):

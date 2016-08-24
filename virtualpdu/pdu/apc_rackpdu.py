@@ -14,11 +14,11 @@
 
 from pyasn1.type import univ
 
+from virtualpdu.core import POWER_OFF
+from virtualpdu.core import POWER_ON
+from virtualpdu.core import REBOOT
 from virtualpdu.pdu import PDU
 from virtualpdu.pdu import PDUOutlet
-from virtualpdu.power_states import POWER_OFF
-from virtualpdu.power_states import POWER_ON
-from virtualpdu.power_states import REBOOT
 
 rPDU_outlet_control_outlet_command = \
     (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 3, 1, 1, 4)

@@ -15,7 +15,6 @@
 from mock import mock
 from virtualpdu import core
 from virtualpdu import drivers
-from virtualpdu import power_states
 from virtualpdu.tests import base
 
 
@@ -33,14 +32,14 @@ class TestCore(base.TestCase):
     def test_pdu_outlet_state_changed_on_power_off(self):
         self.core.pdu_outlet_state_changed(name='my_pdu',
                                            outlet_number=1,
-                                           state=power_states.POWER_OFF)
+                                           state=core.POWER_OFF)
 
         self.driver_mock.power_off.assert_called_with('server_one')
 
     def test_pdu_outlet_state_changed_machine_not_in_mapping_noop(self):
         self.core.pdu_outlet_state_changed(name='my_pdu',
                                            outlet_number=2,
-                                           state=power_states.POWER_OFF)
+                                           state=core.POWER_OFF)
 
         self.assertFalse(self.driver_mock.power_off.called)
         self.assertFalse(self.driver_mock.power_on.called)
@@ -48,14 +47,14 @@ class TestCore(base.TestCase):
     def test_pdu_outlet_state_changed_on_power_on(self):
         self.core.pdu_outlet_state_changed(name='my_pdu',
                                            outlet_number=1,
-                                           state=power_states.POWER_ON)
+                                           state=core.POWER_ON)
 
         self.driver_mock.power_on.assert_called_with('server_one')
 
     def test_pdu_outlet_state_changed_on_reboot(self):
         self.core.pdu_outlet_state_changed(name='my_pdu',
                                            outlet_number=1,
-                                           state=power_states.REBOOT)
+                                           state=core.REBOOT)
 
         self.driver_mock.assert_has_calls([mock.call.power_off('server_one'),
                                            mock.call.power_on('server_one')])
