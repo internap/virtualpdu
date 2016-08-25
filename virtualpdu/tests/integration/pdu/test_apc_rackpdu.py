@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from virtualpdu.core import POWER_OFF
+from virtualpdu.core import POWER_ON
 from virtualpdu.pdu.apc_rackpdu import APCRackPDU
-from virtualpdu.power_states import POWER_OFF
-from virtualpdu.power_states import POWER_ON
 
 from virtualpdu.tests.integration.pdu import PDUTestCase
 
