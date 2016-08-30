@@ -15,3 +15,11 @@ install:
 
 script: tox
 
+deploy:
+  provider: pypi
+  user: internaphosting
+  password:
+    secure: Yfg+t3plmuRyBSkk+NTY/cn6OjycsFFjng4SVA8OkepbN8zMFZgArjUvGkIrYT96js6TgzAeSn6faK5f3NH4lwDwGRefg5GZNST4PU/tfoBUV/+b/rtbEWDNgAIYTr7v7ObvNN9YQ9+PPU3RuNsrq5qMsvUgu/fLyNxGGD2b5N63YXfyku2lhFe/Ij4MZLUwhoKD0TGjxjfVT2hoMCZvGbR7kiu3Av1xVbDYCmAPEtBoCq5zkZMiC3r1xMyZpo7oWXhSVGpFy3v1jhHHy0Z4ZS7AwRy9p54RD5Z9yZ7M8buasXb21nu2hlGTOfKkQVG6dC+fHTTqyCJahW8dJa24GGy+zJ3N46llcSSXB+UQSbmqtwwE9qWdSpf1XlInTsTu5ugLXwiGb+Ty3P665LN91UY5hA0G/fk+kHbY2r+rmxMuW6/0/L9YasXI5CH8dUOhagVs8n9MXX8fzu659ctTZs3ZQXPp+m+Y3fUnTJ9vfOFveKU9EGkeO0n6RaKc+/6qqZx+lwmJJzHJ0epmPXcMdFuQozhJjTICzoF6q6FFJxEc+Xd6qfc+xOyCLZfyWCF/N3MRN0yNYr0wrPvQS2sz/H4swZVJjyws/bDEWvnmXB6RMEDkeFqbP7+MiIV7/3PevPSQfbgNgO5xCAGKlrdkB9dhHrZQc+E2s7WAdEHCcjA=
+  on:
+    tags: true
+    repo: internap/virtualpdu
