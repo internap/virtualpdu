@@ -27,11 +27,13 @@ class Core(object):
     def pdu_outlet_state_changed(self, name, outlet_number, state):
         self.logger.info(
             "PDU '{name}', outlet '{outlet_number}' has new state: '{state}'".
-            format(name=name, outlet_number=outlet_number, state=state))
+                format(name=name, outlet_number=outlet_number, state=state))
         try:
             server_name = self._get_server_name(name, outlet_number)
 
-            self.logger.info("Found server '{0}'".format(server_name))
+            self.logger.debug("Found server '{0}' on PDU '{1}', "
+                              "outlet '{2}'".format(server_name, name,
+                                                  outlet_number))
         except KeyError:
             return
 

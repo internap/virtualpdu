@@ -15,6 +15,11 @@ import subprocess
 
 import sys
 
+import signal
+import threading
+
+import time
+
 import tempfile
 
 import os
@@ -56,23 +61,72 @@ class TestEntrypointIntegration(base.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
             f.flush()
-            p = subprocess.Popen([
-                sys.executable,
-                self._get_entrypoint_path('virtualpdu'),
-                f.name
-            ])
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    self._get_entrypoint_path('virtualpdu'),
+                    f.name,
+                ])
 
-            self.turn_off_outlet(community='public',
-                                 listen_address='127.0.0.1',
-                                 outlet=5,
-                                 port=9998)
+                self.turn_off_outlet(community='public',
+                                     listen_address='127.0.0.1',
+                                     outlet=5,
+                                     port=9998)
 
-            self.turn_off_outlet(community='public',
-                                 listen_address='127.0.0.1',
-                                 outlet=2,
-                                 port=9997)
+                self.turn_off_outlet(community='public',
+                                     listen_address='127.0.0.1',
+                                     outlet=2,
+                                     port=9997)
+            finally:
+                p.kill()
 
-            p.kill()
+    def test_SIGINT_stops_the_process(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
+            f.flush()
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    self._get_entrypoint_path('virtualpdu'),
+                    f.name,
+                ])
+
+                self.assertIsNone(p.poll())
+                p.send_signal(signal.SIGINT)
+                time.sleep(0.1)  # NOTE(mmitchell): Give it 100ms to stop.
+                self.assertIsNotNone(p.poll())
+            finally:
+                try:
+                    p.kill()
+                except OSError:
+                    pass
+
+    def test_pdu_names_ips_and_ports_are_shown_on_stderr(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
+            f.flush()
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    self._get_entrypoint_path('virtualpdu'),
+                    f.name,
+                ], stderr=subprocess.PIPE)
+
+                t = threading.Timer(1, p.send_signal, [signal.SIGINT])
+                t.start()
+                stdout, stderr = p.communicate()
+                t.join()
+
+                self.assertIn(b'my_pdu', stderr)
+                self.assertIn(b'127.0.0.1:9998', stderr)
+
+                self.assertIn(b'my_second_pdu', stderr)
+                self.assertIn(b'127.0.0.1:9997', stderr)
+            finally:
+                try:
+                    p.kill()
+                except OSError:
+                    pass
 
     def turn_off_outlet(self, community, listen_address, outlet, port):
         outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (outlet,)

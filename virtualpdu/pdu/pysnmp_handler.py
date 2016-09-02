@@ -102,6 +102,8 @@ class SNMPPDUHandler(object):
 class SNMPPDUHarness(threading.Thread):
     def __init__(self, pdu, listen_address, listen_port, community="public"):
         super(SNMPPDUHarness, self).__init__()
+        self.logger = logging.getLogger(__name__)
+
         self.pdu = pdu
 
         self.snmp_handler = SNMPPDUHandler(self.pdu, community=community)
@@ -111,6 +113,10 @@ class SNMPPDUHarness(threading.Thread):
         self.transportDispatcher = AsyncoreDispatcher()
 
     def run(self):
+        self.logger.info("Starting PDU '{name}' on {host}:{port}".
+              format(name=self.pdu.name,
+                     host=self.listen_address,
+                     port=self.listen_port))
         self.transportDispatcher.registerRecvCbFun(
             self.snmp_handler.message_handler)
 

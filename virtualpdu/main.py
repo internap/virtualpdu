@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 
 try:
     import configparser
@@ -26,6 +27,8 @@ from virtualpdu.pdu import pysnmp_handler
 
 MISSING_CONFIG_MESSAGE = 'Missing configuration file as first parameter.\n'
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 def main():
     try:
@@ -39,6 +42,7 @@ def main():
         driver = get_driver_from_config(config)
         mapping = get_mapping_for_config(config)
         core = virtualpdu.core.Core(driver=driver, mapping=mapping)
+        pdu_threads = []
         for pdu in [s for s in config.sections() if s != 'global']:
 
             apc_pdu = apc_rackpdu.APCRackPDU(pdu, core)
@@ -47,13 +51,24 @@ def main():
             port = int(config.get(pdu, 'listen_port'))
             community = config.get(pdu, 'community')
 
-            pdu_test_harness = pysnmp_handler.SNMPPDUHarness(
+            pdu_threads.append(pysnmp_handler.SNMPPDUHarness(
                 apc_pdu,
                 listen_address,
                 port,
                 community
-            )
-            pdu_test_harness.start()
+            ))
+
+        for t in pdu_threads:
+            t.start()
+
+        try:
+            for t in pdu_threads:
+                while t.isAlive():
+                    t.join(1)
+        except KeyboardInterrupt:
+            for t in pdu_threads:
+                t.stop()
+            sys.exit()
 
 
 def get_driver_from_config(conf):
