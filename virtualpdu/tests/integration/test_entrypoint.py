@@ -15,10 +15,14 @@ import subprocess
 
 import sys
 
+import signal
+import threading
+
 import tempfile
 
 import os
 from pysnmp.entity.rfc3413.oneliner import cmdgen
+from retrying import retry
 from virtualpdu.pdu import apc_rackpdu
 from virtualpdu.tests import base
 from virtualpdu.tests import snmp_client
@@ -40,10 +44,10 @@ ports=2:test
 """
 
 
-class TestEntrypointIntegration(base.TestCase):
+class TestEntryPointIntegration(base.TestCase):
     def test_entry_point_works(self):
         p = subprocess.Popen([
-            sys.executable, self._get_entrypoint_path('virtualpdu')],
+            sys.executable, _get_entry_point_path('virtualpdu')],
             stderr=subprocess.PIPE
         )
         stdout, stderr = p.communicate()
@@ -56,34 +60,89 @@ class TestEntrypointIntegration(base.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
             f.flush()
-            p = subprocess.Popen([
-                sys.executable,
-                self._get_entrypoint_path('virtualpdu'),
-                f.name
-            ])
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    _get_entry_point_path('virtualpdu'),
+                    f.name,
+                ])
 
-            self.turn_off_outlet(community='public',
+                _turn_off_outlet(community='public',
                                  listen_address='127.0.0.1',
                                  outlet=5,
                                  port=9998)
 
-            self.turn_off_outlet(community='public',
+                _turn_off_outlet(community='public',
                                  listen_address='127.0.0.1',
                                  outlet=2,
                                  port=9997)
+            finally:
+                # NOTE(mmitchell): The process shouldn't have died on it's
+                #                  own. Kill it.
+                p.kill()
 
-            p.kill()
+    def test_sigint_stops_the_process(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
+            f.flush()
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    _get_entry_point_path('virtualpdu'),
+                    f.name,
+                ])
+                self.assertIsNone(p.poll())
+                p.send_signal(signal.SIGINT)
+                self._poll_process_for_done(p)
+            finally:
+                try:
+                    p.kill()
+                except OSError:
+                    pass
 
-    def turn_off_outlet(self, community, listen_address, outlet, port):
-        outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (outlet,)
-        snmp_client_ = snmp_client.SnmpClient(cmdgen,
-                                              listen_address,
-                                              port,
-                                              community,
-                                              timeout=1,
-                                              retries=1)
-        snmp_client_.set(outlet_oid,
-                         apc_rackpdu.rPDU_power_mappings['immediateOff'])
+    def test_pdu_names_ips_and_ports_are_shown_on_stderr(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(bytearray(TEST_CONFIG, encoding='utf-8'))
+            f.flush()
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    _get_entry_point_path('virtualpdu'),
+                    f.name,
+                ], stderr=subprocess.PIPE)
 
-    def _get_entrypoint_path(self, entrypoint):
-        return os.path.join(os.path.dirname(sys.executable), entrypoint)
+                t = threading.Timer(1, p.send_signal, [signal.SIGINT])
+                t.start()
+                stdout, stderr = p.communicate()
+                t.join()
+
+                self.assertIn(b'my_pdu', stderr)
+                self.assertIn(b'127.0.0.1:9998', stderr)
+
+                self.assertIn(b'my_second_pdu', stderr)
+                self.assertIn(b'127.0.0.1:9997', stderr)
+            finally:
+                try:
+                    p.kill()
+                except OSError:
+                    pass
+
+    @retry(stop_max_attempt_number=10)
+    def _poll_process_for_done(self, process):
+        return self.assertIsNotNone(process.poll())
+
+
+def _turn_off_outlet(community, listen_address, outlet, port):
+    outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (outlet,)
+    snmp_client_ = snmp_client.SnmpClient(cmdgen,
+                                          listen_address,
+                                          port,
+                                          community,
+                                          timeout=1,
+                                          retries=1)
+    snmp_client_.set(outlet_oid,
+                     apc_rackpdu.rPDU_power_mappings['immediateOff'])
+
+
+def _get_entry_point_path(entry_point):
+    return os.path.join(os.path.dirname(sys.executable), entry_point)
