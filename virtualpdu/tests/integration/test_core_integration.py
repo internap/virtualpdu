@@ -20,8 +20,8 @@ from virtualpdu import core
 from virtualpdu import drivers
 from virtualpdu.drivers import libvirt_driver
 from virtualpdu.pdu import apc_rackpdu
+from virtualpdu.pdu import pysnmp_handler
 from virtualpdu.tests import base
-from virtualpdu.tests.integration import pdu
 from virtualpdu.tests import snmp_client
 
 
@@ -45,10 +45,11 @@ class TestCoreIntegration(base.TestCase):
         port = random.randint(20000, 30000)
         community = 'public'
 
-        self.pdu_test_harness = pdu.SNMPPDUTestHarness(pdu_,
-                                                       listen_address,
-                                                       port,
-                                                       community)
+        self.pdu_test_harness = pysnmp_handler.SNMPPDUHarness(
+            pdu_,
+            listen_address,
+            port,
+            community)
         self.pdu_test_harness.start()
 
         snmp_client_ = snmp_client.SnmpClient(cmdgen,

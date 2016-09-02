@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import logging
+import threading
 
 from pyasn1.codec.ber import decoder
 from pyasn1.codec.ber import encoder
+from pysnmp.carrier.asyncore.dgram import udp
+from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
 from pysnmp.proto import api
 
 
@@ -41,8 +44,9 @@ class SNMPPDUHandler(object):
                     'Unsupported SNMP version "{}"'.format(message_version))
                 return
 
-            request, whole_message = \
-                decoder.decode(whole_message, asn1Spec=protocol.Message())
+            request, whole_message = decoder.decode(
+                whole_message, asn1Spec=protocol.Message()
+            )
 
             response = protocol.apiMessage.getResponse(request)
             request_pdus = protocol.apiMessage.getPDU(request)
@@ -93,3 +97,37 @@ class SNMPPDUHandler(object):
 
     def valid_community(self, community):
         return str(community) == self.community
+
+
+class SNMPPDUHarness(threading.Thread):
+    def __init__(self, pdu, listen_address, listen_port, community="public"):
+        super(SNMPPDUHarness, self).__init__()
+        self.pdu = pdu
+
+        self.snmp_handler = SNMPPDUHandler(self.pdu, community=community)
+
+        self.listen_address = listen_address
+        self.listen_port = listen_port
+        self.transportDispatcher = AsyncoreDispatcher()
+
+    def run(self):
+        self.transportDispatcher.registerRecvCbFun(
+            self.snmp_handler.message_handler)
+
+        # UDP/IPv4
+        self.transportDispatcher.registerTransport(
+            udp.domainName,
+            udp.UdpSocketTransport().openServerMode(
+                (self.listen_address, self.listen_port))
+        )
+
+        self.transportDispatcher.jobStarted(1)
+
+        try:
+            # Dispatcher will never finish as job#1 never reaches zero
+            self.transportDispatcher.runDispatcher()
+        except Exception:
+            self.transportDispatcher.closeDispatcher()
+
+    def stop(self):
+        self.transportDispatcher.jobFinished(1)
