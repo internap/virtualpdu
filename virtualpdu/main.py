@@ -43,7 +43,7 @@ def main():
 
             apc_pdu = apc_rackpdu.APCRackPDU(pdu, core)
 
-            listen_address = config.get(pdu, 'listen_host')
+            listen_address = config.get(pdu, 'listen_address')
             port = int(config.get(pdu, 'listen_port'))
             community = config.get(pdu, 'community')
 
