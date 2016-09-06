@@ -27,13 +27,13 @@ TEST_CONFIG = """[global]
 libvirt_uri=test:///default
 
 [my_pdu]
-listen_host=127.0.0.1
+listen_address=127.0.0.1
 listen_port=9998
 community=public
 ports=5:test
 
 [my_second_pdu]
-listen_host=127.0.0.1
+listen_address=127.0.0.1
 listen_port=9997
 community=public
 ports=2:test
