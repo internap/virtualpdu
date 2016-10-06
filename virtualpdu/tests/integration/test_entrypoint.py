@@ -11,19 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import subprocess
-
-import sys
-
 import signal
-import threading
-
+import subprocess
+import sys
 import tempfile
+import threading
 
 import os
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from retrying import retry
+
 from virtualpdu.pdu import apc_rackpdu
+from virtualpdu.pdu.apc_rackpdu import APCRackPDUOutlet
 from virtualpdu.tests import base
 from virtualpdu.tests import snmp_client
 
@@ -127,6 +126,29 @@ class TestEntryPointIntegration(base.TestCase):
                 except OSError:
                     pass
 
+    def test_entrypoint_raise_on_invalid_mode(self):
+        with tempfile.NamedTemporaryFile() as f:
+            test_config2 = TEST_CONFIG + """outlet_default_state = invalid_mode
+                    """
+            f.write(bytearray(test_config2, encoding='utf-8'))
+            f.flush()
+            try:
+                p = subprocess.Popen([
+                    sys.executable,
+                    _get_entry_point_path('virtualpdu'),
+                    f.name,
+                ], stderr=subprocess.PIPE)
+
+                stdout, stderr = p.communicate()
+                self.assertEqual(1, p.returncode)
+                self.assertIn(b'invalid_mode', stderr)
+                self._poll_process_for_done(p)
+            finally:
+                try:
+                    p.kill()
+                except OSError:
+                    pass
+
     @retry(stop_max_attempt_number=10)
     def _poll_process_for_done(self, process):
         return self.assertIsNotNone(process.poll())
@@ -140,8 +162,8 @@ def _turn_off_outlet(community, listen_address, outlet, port):
                                           community,
                                           timeout=1,
                                           retries=1)
-    snmp_client_.set(outlet_oid,
-                     apc_rackpdu.rPDU_power_mappings['immediateOff'])
+
+    snmp_client_.set(outlet_oid, APCRackPDUOutlet.states.IMMEDIATE_OFF)
 
 
 def _get_entry_point_path(entry_point):

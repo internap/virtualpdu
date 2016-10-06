@@ -17,8 +17,8 @@ from virtualpdu import core
 
 class BasePDUTests(object):
     def test_power_on_notifies_core(self):
-        self.pdu.oids[0].value = \
-            self.pdu.get_native_power_state_from_core(core.POWER_ON)
+        self.pdu.oids[0].state = \
+            self.pdu.outlet_class.states.from_core(core.POWER_ON)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             name='my_pdu',
@@ -26,8 +26,8 @@ class BasePDUTests(object):
             state=core.POWER_ON)
 
     def test_reboot_notifies_core(self):
-        self.pdu.oids[0].value = \
-            self.pdu.get_native_power_state_from_core(core.REBOOT)
+        self.pdu.oids[0].state = \
+            self.pdu.outlet_class.states.from_core(core.REBOOT)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             name='my_pdu',
@@ -35,8 +35,8 @@ class BasePDUTests(object):
             state=core.REBOOT)
 
     def test_power_off_notifies_core(self):
-        self.pdu.oids[0].value = \
-            self.pdu.get_native_power_state_from_core(core.POWER_OFF)
+        self.pdu.oids[0].state = \
+            self.pdu.outlet_class.states.from_core(core.POWER_OFF)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             name='my_pdu',
