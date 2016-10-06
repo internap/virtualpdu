@@ -11,70 +11,79 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 
 from pyasn1.type import univ
 
-from virtualpdu.core import POWER_OFF
-from virtualpdu.core import POWER_ON
-from virtualpdu.core import REBOOT
+from virtualpdu import core
+
+logger = logging.getLogger(__name__)
+
+
+class BasePDUOutletStates(object):
+    to_core_mapping = {}
+
+    def to_core(self, state):
+        return self.to_core_mapping[state]
+
+    def from_core(self, state):
+        return {v: k for (k, v) in self.to_core_mapping.items()}[state]
+
+
+class PDUOutletStates(BasePDUOutletStates):
+    ON = univ.Integer(4)
+    OFF = univ.Integer(5)
+    REBOOT = univ.Integer(6)
+
+    to_core_mapping = {
+        ON: core.POWER_ON,
+        OFF: core.POWER_OFF,
+        REBOOT: core.REBOOT
+    }
 
 
 class PDUOutlet(object):
-    oid = None
-    default_state = univ.Integer(1)
+    states = PDUOutletStates()
 
-    def __init__(self, outlet_number, pdu):
+    def __init__(self, outlet_number, pdu, default_state):
         self.outlet_number = outlet_number
         self.pdu = pdu
-        self._value = self.default_state
+        self._state = default_state
+        self.oid = None
 
     @property
-    def value(self):
-        return self._value
+    def state(self):
+        return self._state
 
-    @value.setter
-    def value(self, value):
-        self._value = value
-        self.pdu.outlet_state_changed(self.outlet_number, value)
+    @state.setter
+    def state(self, state):
+        self._state = state
+        self.pdu.outlet_state_changed(self.outlet_number, self._state)
 
 
 class PDU(object):
     outlet_count = 1
     outlet_index_start = 1
     outlet_class = PDUOutlet
-    power_states = {
-        'on': POWER_ON,
-        'off': POWER_OFF,
-        'reboot': REBOOT
-    }
 
-    core_to_native_power_states = {
-        POWER_ON: 'on',
-        POWER_OFF: 'off',
-        REBOOT: 'reboot'
-    }
-
-    def __init__(self, name, core):
+    def __init__(self, name, core, outlet_default_state=core.POWER_ON):
         self.name = name
         self.core = core
 
+        outlet_native_default_state = \
+            self.outlet_class.states.from_core(outlet_default_state)
+
         self.oids = [
-            self.outlet_class(outlet_number=i + self.outlet_index_start,
-                              pdu=self) for i in range(self.outlet_count)
+            self.outlet_class(outlet_number=o + self.outlet_index_start,
+                              pdu=self,
+                              default_state=outlet_native_default_state
+                              ) for o in range(self.outlet_count)
             ]
 
-        self.oid_mapping = {}
-        for oid in self.oids:
-            self.oid_mapping[oid.oid] = oid
-
-    def get_core_power_state_from_native(self, native_value):
-        return self.power_states[native_value]
-
-    def get_native_power_state_from_core(self, core_value):
-        return self.core_to_native_power_states[core_value]
+        self.oid_mapping = {oid.oid: oid for oid in self.oids}
 
     def outlet_state_changed(self, outlet_number, value):
         self.core.pdu_outlet_state_changed(
             name=self.name,
             outlet_number=outlet_number,
-            state=self.get_core_power_state_from_native(value))
+            state=self.outlet_class.states.to_core(value))

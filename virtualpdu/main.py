@@ -26,7 +26,6 @@ from virtualpdu.pdu import apc_rackpdu
 from virtualpdu.pdu import pysnmp_handler
 
 MISSING_CONFIG_MESSAGE = 'Missing configuration file as first parameter.\n'
-
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -45,11 +44,18 @@ def main():
         pdu_threads = []
         for pdu in [s for s in config.sections() if s != 'global']:
 
-            apc_pdu = apc_rackpdu.APCRackPDU(pdu, core)
-
             listen_address = config.get(pdu, 'listen_address')
             port = int(config.get(pdu, 'listen_port'))
             community = config.get(pdu, 'community')
+
+            try:
+                default_state = config.get(pdu, 'outlet_default_state')
+            except configparser.NoOptionError:
+                default_state = 'ON'
+
+            outlet_default_state = parse_default_state_config(default_state)
+
+            apc_pdu = apc_rackpdu.APCRackPDU(pdu, core, outlet_default_state)
 
             pdu_threads.append(pysnmp_handler.SNMPPDUHarness(
                 apc_pdu,
@@ -69,6 +75,21 @@ def main():
             for t in pdu_threads:
                 t.stop()
             sys.exit()
+
+
+def parse_default_state_config(default_state):
+    supported_states = {
+        'ON': virtualpdu.core.POWER_ON,
+        'OFF': virtualpdu.core.POWER_OFF
+    }
+    try:
+        return supported_states[default_state]
+    except KeyError:
+        invalid_outlet = "outlet_default_state must be " \
+                         "one of {{{}}} but was {}"
+        raise UnableToParseConfig(invalid_outlet.format(
+                                  ", ".join(supported_states.keys()),
+                                  default_state))
 
 
 def get_driver_from_config(conf):

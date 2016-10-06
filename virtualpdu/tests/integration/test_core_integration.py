@@ -26,45 +26,62 @@ from virtualpdu.tests import snmp_client
 
 
 class TestCoreIntegration(base.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestCoreIntegration, self).__init__(*args, **kwargs)
+        self.driver = libvirt_driver.KeepaliveLibvirtDriver('test:///default')
+        self.core = core.Core(driver=self.driver,
+                              mapping={
+                                  ('my_pdu', 5): 'test'
+                              })
+
+        self.outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (5,)
+
     def tearDown(self):
         self.pdu_test_harness.stop()
         super(TestCoreIntegration, self).tearDown()
 
-    def test_pdu_outlet_state_changed_on_power_off(self):
-        mapping = {
-            ('my_pdu', 5): 'test'
-        }
-        driver = libvirt_driver.KeepaliveLibvirtDriver('test:///default')
-
-        core_ = core.Core(driver=driver, mapping=mapping)
-
-        pdu_ = apc_rackpdu.APCRackPDU('my_pdu', core_)
-        outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (5,)
-
+    def get_harness_client(self, pdu_):
         listen_address = '127.0.0.1'
         port = random.randint(20000, 30000)
         community = 'public'
 
-        self.pdu_test_harness = pysnmp_handler.SNMPPDUHarness(
-            pdu_,
-            listen_address,
-            port,
-            community)
+        self.pdu_test_harness = pysnmp_handler.SNMPPDUHarness(pdu_,
+                                                              listen_address,
+                                                              port,
+                                                              community)
         self.pdu_test_harness.start()
 
-        snmp_client_ = snmp_client.SnmpClient(cmdgen,
-                                              listen_address,
-                                              port,
-                                              community,
-                                              timeout=1,
-                                              retries=1)
+        return snmp_client.SnmpClient(cmdgen,
+                                      listen_address,
+                                      port,
+                                      community,
+                                      timeout=1,
+                                      retries=1)
 
-        snmp_client_.set(outlet_oid,
-                         apc_rackpdu.rPDU_power_mappings['immediateOff'])
+    def test_pdu_outlet_state_changed_on_power_off(self):
+        pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core)
+        snmp_client_ = self.get_harness_client(pdu)
+
+        snmp_client_.set(self.outlet_oid,
+                         pdu.outlet_class.states.IMMEDIATE_OFF)
         self.assertEqual(drivers.POWER_OFF,
-                         driver.get_power_state('test'))
+                         self.driver.get_power_state('test'))
 
-        snmp_client_.set(outlet_oid,
-                         apc_rackpdu.rPDU_power_mappings['immediateOn'])
+        snmp_client_.set(self.outlet_oid,
+                         pdu.outlet_class.states.IMMEDIATE_ON)
         self.assertEqual(drivers.POWER_ON,
-                         driver.get_power_state('test'))
+                         self.driver.get_power_state('test'))
+
+    def test_initial_outlet_power_state_on(self):
+        pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core, core.POWER_ON)
+        snmp_client_ = self.get_harness_client(pdu)
+
+        self.assertEqual(pdu.outlet_class.states.IMMEDIATE_ON,
+                         snmp_client_.get_one(self.outlet_oid))
+
+    def test_initial_outlet_power_state_off(self):
+        pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core, core.POWER_OFF)
+        snmp_client_ = self.get_harness_client(pdu)
+
+        self.assertEqual(pdu.outlet_class.states.IMMEDIATE_OFF,
+                         snmp_client_.get_one(self.outlet_oid))

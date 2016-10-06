@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from virtualpdu.core import POWER_OFF
-from virtualpdu.core import POWER_ON
 from virtualpdu.pdu.apc_rackpdu import APCRackPDU
 
 from virtualpdu.tests.integration.pdu import PDUTestCase
@@ -42,13 +40,10 @@ class TestAPCRackPDU(PDUTestCase):
         rPDUControl = (318, 1, 1, 12, 3, 3, 1, 1, 4)
         outlet_1 = enterprises + rPDUControl + (1,)
 
-        native_power_on = self.pdu.get_native_power_state_from_core(POWER_ON)
-        native_power_off = self.pdu.get_native_power_state_from_core(POWER_OFF)
-
-        self.assertEqual(native_power_on,
+        self.assertEqual(self.pdu.outlet_class.states.IMMEDIATE_ON,
                          self.snmp_get(outlet_1))
 
-        self.snmp_set(outlet_1, native_power_off)
+        self.snmp_set(outlet_1, self.pdu.outlet_class.states.IMMEDIATE_OFF)
 
-        self.assertEqual(native_power_off,
+        self.assertEqual(self.pdu.outlet_class.states.IMMEDIATE_OFF,
                          self.snmp_get(outlet_1))

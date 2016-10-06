@@ -65,14 +65,14 @@ class SNMPPDUHandler(object):
                 for oid, val in protocol.apiPDU.getVarBinds(request_pdus):
                     if oid in self.pdu.oid_mapping:
                         var_binds.append(
-                            (oid, self.pdu.oid_mapping[oid].value))
+                            (oid, self.pdu.oid_mapping[oid].state))
                     else:
                         return
             elif request_pdus.isSameTypeWith(protocol.SetRequestPDU()):
                 for oid, val in protocol.apiPDU.getVarBinds(request_pdus):
                     error_index += 1
                     if oid in self.pdu.oid_mapping:
-                        self.pdu.oid_mapping[oid].value = val
+                        self.pdu.oid_mapping[oid].state = val
                         var_binds.append((oid, val))
                     else:
                         var_binds.append((oid, val))

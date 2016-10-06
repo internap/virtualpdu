@@ -14,31 +14,37 @@
 
 from pyasn1.type import univ
 
-from virtualpdu.core import POWER_OFF
-from virtualpdu.core import POWER_ON
-from virtualpdu.core import REBOOT
+from virtualpdu import core
+from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
 from virtualpdu.pdu import PDUOutlet
 
 rPDU_outlet_control_outlet_command = \
     (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 3, 1, 1, 4)
 
-rPDU_power_mappings = {
-    'immediateOn': univ.Integer(1),
-    'immediateOff': univ.Integer(2),
-    'immediateReboot': univ.Integer(3),
-    'delayedOn': univ.Integer(4),
-    'delayedOff': univ.Integer(5),
-    'delayedReboot': univ.Integer(6),
-    'cancelPendingCommand': univ.Integer(7),
-}
+
+class APCRackPDUOutletStates(BasePDUOutletStates):
+    IMMEDIATE_ON = univ.Integer(1)
+    IMMEDIATE_OFF = univ.Integer(2)
+    IMMEDIATE_REBOOT = univ.Integer(3)
+    DELAYED_ON = univ.Integer(4)
+    DELAYED_OFF = univ.Integer(5)
+    DELAYED_REBOOT = univ.Integer(6)
+    CANCEL_PENDING_COMMAND = univ.Integer(7)
+
+    to_core_mapping = {
+        IMMEDIATE_ON: core.POWER_ON,
+        IMMEDIATE_OFF: core.POWER_OFF,
+        IMMEDIATE_REBOOT: core.REBOOT
+    }
 
 
 class APCRackPDUOutlet(PDUOutlet):
-    default_state = rPDU_power_mappings['immediateOn']
+    states = APCRackPDUOutletStates()
 
-    def __init__(self, outlet_number, pdu):
-        super(APCRackPDUOutlet, self).__init__(outlet_number, pdu)
+    def __init__(self, outlet_number, pdu, default_state):
+        super(APCRackPDUOutlet, self).__init__(
+            outlet_number, pdu, default_state)
         self.oid = rPDU_outlet_control_outlet_command + (self.outlet_number, )
 
 
@@ -46,14 +52,3 @@ class APCRackPDU(PDU):
     outlet_count = 8
     outlet_index_start = 1
     outlet_class = APCRackPDUOutlet
-    power_states = {
-        rPDU_power_mappings['immediateOn']: POWER_ON,
-        rPDU_power_mappings['immediateOff']: POWER_OFF,
-        rPDU_power_mappings['immediateReboot']: REBOOT,
-    }
-
-    core_to_native_power_states = {
-        POWER_ON: rPDU_power_mappings['immediateOn'],
-        POWER_OFF: rPDU_power_mappings['immediateOff'],
-        REBOOT: rPDU_power_mappings['immediateReboot']
-    }

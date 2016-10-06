@@ -34,10 +34,14 @@ class TestPDU(PDUTestCase):
                          self.snmp_set(enterprises + (42,), univ.Integer(7)))
 
     def test_get_valid_oid_wrong_community(self):
+        default_state = self.pdu.outlet_class.states.ON
         self.pdu.oid_mapping[enterprises + (88, 1)] = \
-            pdu.PDUOutlet(outlet_number=1, pdu=self.pdu)
+            pdu.PDUOutlet(outlet_number=1,
+                          pdu=self.pdu,
+                          default_state=default_state)
 
-        self.assertEqual(1, self.snmp_get(enterprises + (88, 1)))
+        self.assertEqual(self.pdu.outlet_class.states.ON,
+                         self.snmp_get(enterprises + (88, 1)))
 
         self.assertRaises(RequestTimedOut,
                           self.snmp_get, enterprises + (88, 1),
@@ -45,5 +49,6 @@ class TestPDU(PDUTestCase):
 
     def test_set_wrong_community(self):
         self.assertRaises(RequestTimedOut,
-                          self.snmp_set, enterprises + (42,), univ.Integer(1),
+                          self.snmp_set, enterprises + (42,),
+                          self.pdu.outlet_class.states.ON,
                           community='wrong')
