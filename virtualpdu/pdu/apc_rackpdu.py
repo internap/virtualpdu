@@ -42,9 +42,9 @@ class APCRackPDUOutletStates(BasePDUOutletStates):
 class APCRackPDUOutlet(PDUOutlet):
     states = APCRackPDUOutletStates()
 
-    def __init__(self, outlet_number, pdu, default_state):
+    def __init__(self, outlet_number, pdu):
         super(APCRackPDUOutlet, self).__init__(
-            outlet_number, pdu, default_state)
+            outlet_number, pdu)
         self.oid = rPDU_outlet_control_outlet_command + (self.outlet_number, )
 
 

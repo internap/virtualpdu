@@ -40,9 +40,9 @@ class BaytechMRP27PDUOutletStates(BasePDUOutletStates):
 class BaytechMRP27PDUOutlet(PDUOutlet):
     states = BaytechMRP27PDUOutletStates()
 
-    def __init__(self, outlet_number, pdu, default_state):
+    def __init__(self, outlet_number, pdu):
         super(BaytechMRP27PDUOutlet, self).__init__(
-            outlet_number, pdu, default_state)
+            outlet_number, pdu)
         self.oid = sBTA_modules_RPC_outlet_state + (1, self.outlet_number)
 
 

@@ -45,20 +45,18 @@ class PDUOutletStates(BasePDUOutletStates):
 class PDUOutlet(object):
     states = PDUOutletStates()
 
-    def __init__(self, outlet_number, pdu, default_state):
+    def __init__(self, outlet_number, pdu):
         self.outlet_number = outlet_number
         self.pdu = pdu
-        self._state = default_state
         self.oid = None
 
     @property
     def state(self):
-        return self._state
+        return self.pdu.get_outlet_state(self.outlet_number)
 
     @state.setter
     def state(self, state):
-        self._state = state
-        self.pdu.outlet_state_changed(self.outlet_number, self._state)
+        self.pdu.set_outlet_state(self.outlet_number, state)
 
 
 class PDU(object):
@@ -66,24 +64,26 @@ class PDU(object):
     outlet_index_start = 1
     outlet_class = PDUOutlet
 
-    def __init__(self, name, core, outlet_default_state=core.POWER_ON):
+    def __init__(self, name, core):
         self.name = name
         self.core = core
-
-        outlet_native_default_state = \
-            self.outlet_class.states.from_core(outlet_default_state)
 
         self.oids = [
             self.outlet_class(outlet_number=o + self.outlet_index_start,
                               pdu=self,
-                              default_state=outlet_native_default_state
                               ) for o in range(self.outlet_count)
             ]
 
         self.oid_mapping = {oid.oid: oid for oid in self.oids}
 
-    def outlet_state_changed(self, outlet_number, value):
+    def set_outlet_state(self, outlet_number, value):
         self.core.pdu_outlet_state_changed(
-            name=self.name,
-            outlet_number=outlet_number,
+            pdu=self.name,
+            outlet=outlet_number,
             state=self.outlet_class.states.to_core(value))
+
+    def get_outlet_state(self, outlet_number):
+        return self.outlet_class.states.from_core(
+            self.core.get_pdu_outlet_state(
+                pdu=self.name,
+                outlet=outlet_number))

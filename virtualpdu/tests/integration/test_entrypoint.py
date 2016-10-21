@@ -128,8 +128,10 @@ class TestEntryPointIntegration(base.TestCase):
 
     def test_entrypoint_raise_on_invalid_mode(self):
         with tempfile.NamedTemporaryFile() as f:
-            test_config2 = TEST_CONFIG + """outlet_default_state = invalid_mode
-                    """
+            test_config2 = """[global]
+libvirt_uri=test:///default
+outlet_default_state = invalid_mode
+"""
             f.write(bytearray(test_config2, encoding='utf-8'))
             f.flush()
             try:

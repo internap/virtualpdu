@@ -15,6 +15,7 @@
 from pyasn1.type import univ
 from pysnmp.proto.rfc1905 import NoSuchInstance
 
+from virtualpdu import core
 from virtualpdu import pdu
 from virtualpdu.tests.integration.pdu import PDUTestCase
 from virtualpdu.tests.snmp_error_indications import RequestTimedOut
@@ -34,11 +35,10 @@ class TestPDU(PDUTestCase):
                          self.snmp_set(enterprises + (42,), univ.Integer(7)))
 
     def test_get_valid_oid_wrong_community(self):
-        default_state = self.pdu.outlet_class.states.ON
+        self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
         self.pdu.oid_mapping[enterprises + (88, 1)] = \
             pdu.PDUOutlet(outlet_number=1,
-                          pdu=self.pdu,
-                          default_state=default_state)
+                          pdu=self.pdu)
 
         self.assertEqual(self.pdu.outlet_class.states.ON,
                          self.snmp_get(enterprises + (88, 1)))

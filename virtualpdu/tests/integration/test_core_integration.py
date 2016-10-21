@@ -32,7 +32,9 @@ class TestCoreIntegration(base.TestCase):
         self.core = core.Core(driver=self.driver,
                               mapping={
                                   ('my_pdu', 5): 'test'
-                              })
+                              },
+                              store={},
+                              default_state=core.POWER_OFF)
 
         self.outlet_oid = apc_rackpdu.rPDU_outlet_control_outlet_command + (5,)
 
@@ -73,14 +75,22 @@ class TestCoreIntegration(base.TestCase):
                          self.driver.get_power_state('test'))
 
     def test_initial_outlet_power_state_on(self):
-        pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core, core.POWER_ON)
+        my_core = core.Core(driver=self.driver,
+                            mapping={},
+                            store={},
+                            default_state=core.POWER_ON)
+        pdu = apc_rackpdu.APCRackPDU('my_pdu', my_core)
         snmp_client_ = self.get_harness_client(pdu)
 
         self.assertEqual(pdu.outlet_class.states.IMMEDIATE_ON,
                          snmp_client_.get_one(self.outlet_oid))
 
     def test_initial_outlet_power_state_off(self):
-        pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core, core.POWER_OFF)
+        my_core = core.Core(driver=self.driver,
+                            mapping={},
+                            store={},
+                            default_state=core.POWER_OFF)
+        pdu = apc_rackpdu.APCRackPDU('my_pdu', my_core)
         snmp_client_ = self.get_harness_client(pdu)
 
         self.assertEqual(pdu.outlet_class.states.IMMEDIATE_OFF,
