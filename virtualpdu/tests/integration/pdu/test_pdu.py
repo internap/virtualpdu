@@ -37,8 +37,9 @@ class TestPDU(PDUTestCase):
     def test_get_valid_oid_wrong_community(self):
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
         self.pdu.oid_mapping[enterprises + (88, 1)] = \
-            pdu.PDUOutlet(outlet_number=1,
-                          pdu=self.pdu)
+            pdu.PDUOutlet(pdu_name=self.pdu.name,
+                          outlet_number=1,
+                          core=self.core_mock)
 
         self.assertEqual(self.pdu.outlet_class.states.ON,
                          self.snmp_get(enterprises + (88, 1)))
