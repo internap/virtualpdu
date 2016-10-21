@@ -40,7 +40,9 @@ def main():
         config.read(config_file)
         driver = get_driver_from_config(config)
         mapping = get_mapping_for_config(config)
-        core = virtualpdu.core.Core(driver=driver, mapping=mapping)
+        outlet_default_state = get_default_state_from_config(config)
+        core = virtualpdu.core.Core(driver=driver, mapping=mapping, store={},
+                                    default_state=outlet_default_state)
         pdu_threads = []
         for pdu in [s for s in config.sections() if s != 'global']:
 
@@ -48,14 +50,7 @@ def main():
             port = int(config.get(pdu, 'listen_port'))
             community = config.get(pdu, 'community')
 
-            try:
-                default_state = config.get(pdu, 'outlet_default_state')
-            except configparser.NoOptionError:
-                default_state = 'ON'
-
-            outlet_default_state = parse_default_state_config(default_state)
-
-            apc_pdu = apc_rackpdu.APCRackPDU(pdu, core, outlet_default_state)
+            apc_pdu = apc_rackpdu.APCRackPDU(pdu, core)
 
             pdu_threads.append(pysnmp_handler.SNMPPDUHarness(
                 apc_pdu,
@@ -113,6 +108,14 @@ def get_mapping_for_config(conf):
     except configparser.NoOptionError as e:
         raise UnableToParseConfig(e)
     return mapping
+
+
+def get_default_state_from_config(conf):
+    try:
+        default_state = conf.get('global', 'outlet_default_state')
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        default_state = 'ON'
+    return parse_default_state_config(default_state)
 
 
 class UnableToParseConfig(Exception):

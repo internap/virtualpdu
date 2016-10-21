@@ -19,32 +19,51 @@ REBOOT = 'REBOOT'
 
 
 class Core(object):
-    def __init__(self, driver, mapping):
+    def __init__(self, driver, mapping, store, default_state):
         self.driver = driver
         self.mapping = mapping
+        self.store = store
+        self.default_state = default_state
         self.logger = logging.getLogger(__name__)
 
-    def pdu_outlet_state_changed(self, name, outlet_number, state):
+    def pdu_outlet_state_changed(self, pdu, outlet, state):
+        self.store[(pdu, outlet)] = state
+
         self.logger.info("PDU '{}', outlet '{}' has new state: '{}'".format(
-            name, outlet_number, state)
+            pdu, outlet, state)
         )
         try:
-            server_name = self._get_server_name(name, outlet_number)
+            device = self._get_device(pdu, outlet)
 
             self.logger.debug(
                 "Found server '{}' on PDU '{}' outlet '{}'".format(
-                    server_name, name, outlet_number)
+                    device, pdu, outlet)
             )
         except KeyError:
             return
 
         if state == POWER_ON:
-            self.driver.power_on(server_name)
+            self.driver.power_on(device)
         elif state == POWER_OFF:
-            self.driver.power_off(server_name)
+            self.driver.power_off(device)
         elif state == REBOOT:
-            self.driver.power_off(server_name)
-            self.driver.power_on(server_name)
+            self.driver.power_off(device)
+            self.driver.power_on(device)
 
-    def _get_server_name(self, pdu_name, outlet_number):
-        return self.mapping[(pdu_name, outlet_number)]
+    def get_pdu_outlet_state(self, pdu, outlet):
+        try:
+            return self.store[(pdu, outlet)]
+        except KeyError:
+            pass
+
+        try:
+            device = self._get_device(pdu, outlet)
+            power_state = self.driver.get_power_state(device)
+        except KeyError:
+            power_state = self.default_state
+
+        self.store[(pdu, outlet)] = power_state
+        return power_state
+
+    def _get_device(self, pdu, outlet):
+        return self.mapping[(pdu, outlet)]
