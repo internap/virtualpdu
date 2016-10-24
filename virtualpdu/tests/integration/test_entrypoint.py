@@ -151,9 +151,10 @@ outlet_default_state = invalid_mode
                 except OSError:
                     pass
 
-    @retry(stop_max_attempt_number=10)
+    @retry(stop_max_delay=30000)
     def _poll_process_for_done(self, process):
-        return self.assertIsNotNone(process.poll())
+        self.assertIsNotNone(process.poll())
+        time.sleep(1)
 
 
 def _turn_off_outlet(community, listen_address, outlet, port):
