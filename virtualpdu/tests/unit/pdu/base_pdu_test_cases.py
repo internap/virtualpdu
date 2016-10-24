@@ -11,14 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from cached_property import cached_property
+from mock import mock
 from virtualpdu import core
 
 
 class BasePDUTests(object):
+    pdu_class = None
+    outlet_control_oid = None
+
+    @cached_property
+    def core_mock(self):
+        return mock.Mock()
+
+    @cached_property
+    def pdu(self):
+        return self.pdu_class(name='my_pdu', core=self.core_mock)
+
     def test_power_on_notifies_core(self):
-        self.pdu.oids[0].state = \
-            self.pdu.outlet_class.states.from_core(core.POWER_ON)
+        outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
+        outlet_control.value = \
+            outlet_control.states.from_core(core.POWER_ON)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             pdu='my_pdu',
@@ -26,8 +39,9 @@ class BasePDUTests(object):
             state=core.POWER_ON)
 
     def test_reboot_notifies_core(self):
-        self.pdu.oids[0].state = \
-            self.pdu.outlet_class.states.from_core(core.REBOOT)
+        outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
+        outlet_control.value = \
+            outlet_control.states.from_core(core.REBOOT)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             pdu='my_pdu',
@@ -35,8 +49,9 @@ class BasePDUTests(object):
             state=core.REBOOT)
 
     def test_power_off_notifies_core(self):
-        self.pdu.oids[0].state = \
-            self.pdu.outlet_class.states.from_core(core.POWER_OFF)
+        outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
+        outlet_control.value = \
+            outlet_control.states.from_core(core.POWER_OFF)
 
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             pdu='my_pdu',
@@ -44,11 +59,12 @@ class BasePDUTests(object):
             state=core.POWER_OFF)
 
     def test_read_power_on(self):
+        outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
 
         self.assertEqual(
-            self.pdu.outlet_class.states.from_core(core.POWER_ON),
-            self.pdu.oids[0].state
+            outlet_control.states.from_core(core.POWER_ON),
+            outlet_control.value
         )
 
         self.core_mock.get_pdu_outlet_state.assert_called_with(
@@ -56,11 +72,12 @@ class BasePDUTests(object):
             outlet=1)
 
     def test_read_power_off(self):
+        outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_OFF
 
         self.assertEqual(
-            self.pdu.outlet_class.states.from_core(core.POWER_OFF),
-            self.pdu.oids[0].state
+            outlet_control.states.from_core(core.POWER_OFF),
+            outlet_control.value
         )
 
         self.core_mock.get_pdu_outlet_state.assert_called_with(

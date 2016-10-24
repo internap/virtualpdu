@@ -17,7 +17,7 @@ from pyasn1.type import univ
 from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
-from virtualpdu.pdu import PDUOutlet
+from virtualpdu.pdu import PDUOutletControl
 
 sBTA_modules_RPC_outlet_state = (1, 3, 6, 1, 4, 1, 4779, 1, 3, 5, 3, 1, 3)
 
@@ -37,11 +37,11 @@ class BaytechMRP27PDUOutletStates(BasePDUOutletStates):
     }
 
 
-class BaytechMRP27PDUOutlet(PDUOutlet):
+class BaytechMRP27PDUOutletControl(PDUOutletControl):
     states = BaytechMRP27PDUOutletStates()
 
     def __init__(self, pdu_name, outlet_number, core):
-        super(BaytechMRP27PDUOutlet, self).__init__(
+        super(BaytechMRP27PDUOutletControl, self).__init__(
             pdu_name, outlet_number, core)
         self.oid = sBTA_modules_RPC_outlet_state + (1, self.outlet_number)
 
@@ -49,4 +49,4 @@ class BaytechMRP27PDUOutlet(PDUOutlet):
 class BaytechMRP27PDU(PDU):
     outlet_count = 24
     outlet_index_start = 1
-    outlet_class = BaytechMRP27PDUOutlet
+    outlet_classes = [BaytechMRP27PDUOutletControl]

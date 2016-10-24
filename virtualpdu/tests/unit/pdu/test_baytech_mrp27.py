@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import mock
-
-from virtualpdu.pdu.baytech_mrp27 import BaytechMRP27PDU
+from virtualpdu.pdu import baytech_mrp27
 from virtualpdu.tests import base
 from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
 
 class TestBaytechMRP27PDU(base.TestCase, BasePDUTests):
-    def setUp(self):
-        super(TestBaytechMRP27PDU, self).setUp()
-        self.core_mock = mock.Mock()
-        self.pdu = BaytechMRP27PDU(name='my_pdu', core=self.core_mock)
+    pdu_class = baytech_mrp27.BaytechMRP27PDU
+    outlet_control_oid = \
+        baytech_mrp27.sBTA_modules_RPC_outlet_state \
+        + (1, baytech_mrp27.BaytechMRP27PDU.outlet_index_start,)

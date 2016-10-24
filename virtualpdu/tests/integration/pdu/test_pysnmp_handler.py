@@ -44,7 +44,7 @@ class TestSNMPPDUHarness(base.TestCase):
 
         mock_pdu.oid_mapping = dict()
         mock_pdu.oid_mapping[(1, 3, 6, 99)] = mock.Mock()
-        mock_pdu.oid_mapping[(1, 3, 6, 99)].state = univ.Integer(42)
+        mock_pdu.oid_mapping[(1, 3, 6, 99)].value = univ.Integer(42)
 
         self.assertEqual(42, client.get_one((1, 3, 6, 99)))
 
@@ -74,6 +74,6 @@ class TestSNMPPDUHarness(base.TestCase):
         client.set((1, 3, 6, 98), univ.Integer(99))
 
         self.assertEqual(univ.Integer(99),
-                         mock_pdu.oid_mapping[(1, 3, 6, 98)].state)
+                         mock_pdu.oid_mapping[(1, 3, 6, 98)].value)
 
         harness.stop()

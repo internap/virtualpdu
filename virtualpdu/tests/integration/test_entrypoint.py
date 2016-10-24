@@ -22,7 +22,7 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 from retrying import retry
 
 from virtualpdu.pdu import apc_rackpdu
-from virtualpdu.pdu.apc_rackpdu import APCRackPDUOutlet
+from virtualpdu.pdu.apc_rackpdu import APCRackPDUOutletControl
 from virtualpdu.tests import base
 from virtualpdu.tests import snmp_client
 
@@ -151,7 +151,7 @@ outlet_default_state = invalid_mode
                 except OSError:
                     pass
 
-    @retry(stop_max_attempt_number=10)
+    @retry(stop_max_attempt_number=10, wait_fixed=1000)
     def _poll_process_for_done(self, process):
         return self.assertIsNotNone(process.poll())
 
@@ -165,7 +165,7 @@ def _turn_off_outlet(community, listen_address, outlet, port):
                                           timeout=1,
                                           retries=1)
 
-    snmp_client_.set(outlet_oid, APCRackPDUOutlet.states.IMMEDIATE_OFF)
+    snmp_client_.set(outlet_oid, APCRackPDUOutletControl.states.IMMEDIATE_OFF)
 
 
 def _get_entry_point_path(entry_point):

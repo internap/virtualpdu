@@ -17,10 +17,14 @@ from pyasn1.type import univ
 from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
-from virtualpdu.pdu import PDUOutlet
+from virtualpdu.pdu import PDUOutletControl
+from virtualpdu.pdu import PDUOutletRegister
 
 rPDU_outlet_control_outlet_command = \
     (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 3, 1, 1, 4)
+
+rPDU_outlet_config_outlet_name = \
+    (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 4, 1, 1, 2)
 
 
 class APCRackPDUOutletStates(BasePDUOutletStates):
@@ -39,16 +43,29 @@ class APCRackPDUOutletStates(BasePDUOutletStates):
     }
 
 
-class APCRackPDUOutlet(PDUOutlet):
+class APCRackPDUOutletControl(PDUOutletControl):
     states = APCRackPDUOutletStates()
 
     def __init__(self, pdu_name, outlet_number, core):
-        super(APCRackPDUOutlet, self).__init__(
+        super(APCRackPDUOutletControl, self).__init__(
             pdu_name, outlet_number, core)
         self.oid = rPDU_outlet_control_outlet_command + (self.outlet_number, )
+
+
+class APCRackPDUOutletName(PDUOutletRegister):
+    states = APCRackPDUOutletStates()
+
+    def __init__(self, pdu_name, outlet_number, core):
+        super(APCRackPDUOutletName, self).__init__(
+            pdu_name, outlet_number, core)
+        self.oid = rPDU_outlet_config_outlet_name + (self.outlet_number, )
+
+    @property
+    def value(self):
+        return univ.OctetString('Outlet #{}'.format(self.outlet_number))
 
 
 class APCRackPDU(PDU):
     outlet_count = 8
     outlet_index_start = 1
-    outlet_class = APCRackPDUOutlet
+    outlet_classes = [APCRackPDUOutletControl, APCRackPDUOutletName]

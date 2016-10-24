@@ -23,6 +23,7 @@ from virtualpdu.tests import snmp_client
 
 class PDUTestCase(base.TestCase):
     pdu_class = NotImplementedError
+    outlet_control_class = NotImplementedError
 
     def setUp(self):
         super(PDUTestCase, self).setUp()

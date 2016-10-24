@@ -64,13 +64,15 @@ class TestCoreIntegration(base.TestCase):
         pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core)
         snmp_client_ = self.get_harness_client(pdu)
 
-        snmp_client_.set(self.outlet_oid,
-                         pdu.outlet_class.states.IMMEDIATE_OFF)
+        snmp_client_.set(
+            self.outlet_oid,
+            apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_OFF)
         self.assertEqual(drivers.POWER_OFF,
                          self.driver.get_power_state('test'))
 
-        snmp_client_.set(self.outlet_oid,
-                         pdu.outlet_class.states.IMMEDIATE_ON)
+        snmp_client_.set(
+            self.outlet_oid,
+            apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_ON)
         self.assertEqual(drivers.POWER_ON,
                          self.driver.get_power_state('test'))
 
@@ -82,8 +84,9 @@ class TestCoreIntegration(base.TestCase):
         pdu = apc_rackpdu.APCRackPDU('my_pdu', my_core)
         snmp_client_ = self.get_harness_client(pdu)
 
-        self.assertEqual(pdu.outlet_class.states.IMMEDIATE_ON,
-                         snmp_client_.get_one(self.outlet_oid))
+        self.assertEqual(
+            apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_ON,
+            snmp_client_.get_one(self.outlet_oid))
 
     def test_initial_outlet_power_state_off(self):
         my_core = core.Core(driver=self.driver,
@@ -93,5 +96,6 @@ class TestCoreIntegration(base.TestCase):
         pdu = apc_rackpdu.APCRackPDU('my_pdu', my_core)
         snmp_client_ = self.get_harness_client(pdu)
 
-        self.assertEqual(pdu.outlet_class.states.IMMEDIATE_OFF,
-                         snmp_client_.get_one(self.outlet_oid))
+        self.assertEqual(
+            apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_OFF,
+            snmp_client_.get_one(self.outlet_oid))

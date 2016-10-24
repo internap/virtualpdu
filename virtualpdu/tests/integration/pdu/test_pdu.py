@@ -25,6 +25,7 @@ enterprises = (1, 3, 6, 1, 4, 1)
 
 class TestPDU(PDUTestCase):
     pdu_class = pdu.PDU
+    outlet_control_class = pdu.PDUOutletControl
 
     def test_get_unknown_oid(self):
         self.assertRaises(RequestTimedOut,
@@ -37,11 +38,11 @@ class TestPDU(PDUTestCase):
     def test_get_valid_oid_wrong_community(self):
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
         self.pdu.oid_mapping[enterprises + (88, 1)] = \
-            pdu.PDUOutlet(pdu_name=self.pdu.name,
-                          outlet_number=1,
-                          core=self.core_mock)
+            pdu.PDUOutletControl(pdu_name=self.pdu.name,
+                                 outlet_number=1,
+                                 core=self.core_mock)
 
-        self.assertEqual(self.pdu.outlet_class.states.ON,
+        self.assertEqual(self.outlet_control_class.states.ON,
                          self.snmp_get(enterprises + (88, 1)))
 
         self.assertRaises(RequestTimedOut,
@@ -51,5 +52,5 @@ class TestPDU(PDUTestCase):
     def test_set_wrong_community(self):
         self.assertRaises(RequestTimedOut,
                           self.snmp_set, enterprises + (42,),
-                          self.pdu.outlet_class.states.ON,
+                          self.outlet_control_class.states.ON,
                           community='wrong')
