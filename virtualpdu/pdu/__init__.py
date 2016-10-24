@@ -42,9 +42,7 @@ class PDUOutletStates(BasePDUOutletStates):
     }
 
 
-class PDUOutlet(object):
-    states = PDUOutletStates()
-
+class PDUOutletRegister(object):
     def __init__(self, pdu_name, outlet_number, core):
         self.pdu_name = pdu_name
         self.outlet_number = outlet_number
@@ -52,14 +50,26 @@ class PDUOutlet(object):
         self.oid = None
 
     @property
-    def state(self):
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+
+class PDUOutletControl(PDUOutletRegister):
+    states = PDUOutletStates()
+
+    @property
+    def value(self):
         return self.states.from_core(
             self.core.get_pdu_outlet_state(
                 pdu=self.pdu_name,
                 outlet=self.outlet_number))
 
-    @state.setter
-    def state(self, state):
+    @value.setter
+    def value(self, state):
         self.core.pdu_outlet_state_changed(
             pdu=self.pdu_name,
             outlet=self.outlet_number,
@@ -69,16 +79,18 @@ class PDUOutlet(object):
 class PDU(object):
     outlet_count = 1
     outlet_index_start = 1
-    outlet_class = PDUOutlet
+    outlet_classes = [PDUOutletControl]
 
     def __init__(self, name, core):
         self.name = name
 
-        self.oids = [
-            self.outlet_class(pdu_name=self.name,
-                              outlet_number=o + self.outlet_index_start,
-                              core=core,
-                              ) for o in range(self.outlet_count)
-            ]
+        mapping = {}
+        for outlet_number in range(self.outlet_count):
+            for outlet_class in self.outlet_classes:
+                outlet_register = outlet_class(
+                    pdu_name=self.name,
+                    outlet_number=outlet_number + self.outlet_index_start,
+                    core=core)
+                mapping[outlet_register.oid] = outlet_register
 
-        self.oid_mapping = {oid.oid: oid for oid in self.oids}
+        self.oid_mapping = mapping

@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import mock
 from virtualpdu.pdu import PDU
 from virtualpdu.tests import base
 from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
 
 class TestPDU(base.TestCase, BasePDUTests):
-    def setUp(self):
-        super(TestPDU, self).setUp()
-        self.core_mock = mock.Mock()
-        self.pdu = PDU(name='my_pdu', core=self.core_mock)
+    pdu_class = PDU
+    outlet_control_oid = None

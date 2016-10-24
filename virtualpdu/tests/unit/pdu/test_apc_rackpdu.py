@@ -11,15 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from mock import mock
-from virtualpdu.pdu.apc_rackpdu import APCRackPDU
+from pyasn1.type import univ
+from virtualpdu.pdu import apc_rackpdu
 from virtualpdu.tests import base
 from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
 
 class TestAPCRackPDU(base.TestCase, BasePDUTests):
-    def setUp(self):
-        super(TestAPCRackPDU, self).setUp()
-        self.core_mock = mock.Mock()
-        self.pdu = APCRackPDU(name='my_pdu', core=self.core_mock)
+    pdu_class = apc_rackpdu.APCRackPDU
+    outlet_control_oid = \
+        apc_rackpdu.rPDU_outlet_control_outlet_command \
+        + (apc_rackpdu.APCRackPDU.outlet_index_start,)
+    outlet_name_oid = \
+        apc_rackpdu.rPDU_outlet_config_outlet_name \
+        + (apc_rackpdu.APCRackPDU.outlet_index_start,)
+
+    def test_read_outlet_name(self):
+        outlet_name = self.pdu.oid_mapping[self.outlet_name_oid]
+
+        self.assertEqual(
+            univ.OctetString('Outlet #1'),
+            outlet_name.value
+        )

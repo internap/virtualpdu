@@ -13,12 +13,14 @@
 # limitations under the License.
 from virtualpdu import core
 from virtualpdu.pdu.baytech_mrp27 import BaytechMRP27PDU
+from virtualpdu.pdu.baytech_mrp27 import BaytechMRP27PDUOutletControl
 
 from virtualpdu.tests.integration.pdu import PDUTestCase
 
 
 class TestBaytechMRP27PDU(PDUTestCase):
     pdu_class = BaytechMRP27PDU
+    outlet_control_class = BaytechMRP27PDUOutletControl
 
     def test_all_ports_are_on_by_default(self):
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
@@ -43,13 +45,13 @@ class TestBaytechMRP27PDU(PDUTestCase):
         outlet_1 = outlet_state_oid + (1, 1)
 
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
-        self.assertEqual(self.pdu.outlet_class.states.ON,
+        self.assertEqual(self.outlet_control_class.states.ON,
                          self.snmp_get(outlet_1))
 
-        self.snmp_set(outlet_1, self.pdu.outlet_class.states.OFF)
+        self.snmp_set(outlet_1, self.outlet_control_class.states.OFF)
         self.core_mock.pdu_outlet_state_changed.assert_called_with(
             pdu=self.pdu.name, outlet=1, state=core.POWER_OFF)
 
         self.core_mock.get_pdu_outlet_state.return_value = core.POWER_OFF
-        self.assertEqual(self.pdu.outlet_class.states.OFF,
+        self.assertEqual(self.outlet_control_class.states.OFF,
                          self.snmp_get(outlet_1))
