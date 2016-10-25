@@ -19,6 +19,36 @@ from virtualpdu import core
 
 logger = logging.getLogger(__name__)
 
+# A textual description of the entity.
+sysDescr = (1, 3, 6, 1, 2, 1, 1, 1)
+
+# The vendor's authoritative identification of the network management
+# subsystem contained in the entity.
+sysObjectID = (1, 3, 6, 1, 2, 1, 1, 2)
+
+
+class PDUFeature(object):
+    def __init__(self, oid=None, value=univ.Null):
+        self.oid = oid
+        self.default_value = value
+
+    @property
+    def value(self):
+        return self.default_value
+
+
+class PDUFeatureFactory(object):
+    def __init__(self, oid, value):
+        self.oid = oid
+        self.value = value
+
+    def __call__(self, *args, **kwargs):
+        return PDUFeature(oid=self.oid, value=self.value)
+
+
+def static_info(oid, value):
+    return PDUFeatureFactory(oid, value)
+
 
 class BasePDUOutletStates(object):
     to_core_mapping = {}
@@ -42,24 +72,19 @@ class PDUOutletStates(BasePDUOutletStates):
     }
 
 
-class PDUOutletRegister(object):
+class PDUOutletFeature(PDUFeature):
     def __init__(self, pdu_name, outlet_number, core):
+        super(PDUOutletFeature, self).__init__()
         self.pdu_name = pdu_name
         self.outlet_number = outlet_number
         self.core = core
-        self.oid = None
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        self._value = value
 
 
-class PDUOutletControl(PDUOutletRegister):
+class PDUOutletControl(PDUOutletFeature):
     states = PDUOutletStates()
+
+    def __init__(self, pdu_name, outlet_number, core):
+        super(PDUOutletControl, self).__init__(pdu_name, outlet_number, core)
 
     @property
     def value(self):
@@ -79,18 +104,25 @@ class PDUOutletControl(PDUOutletRegister):
 class PDU(object):
     outlet_count = 1
     outlet_index_start = 1
-    outlet_classes = [PDUOutletControl]
+    outlet_features = [PDUOutletControl]
+    general_features = []
 
     def __init__(self, name, core):
         self.name = name
 
         mapping = {}
         for outlet_number in range(self.outlet_count):
-            for outlet_class in self.outlet_classes:
-                outlet_register = outlet_class(
+            for outlet_feature in self.outlet_features:
+                obj = outlet_feature(
                     pdu_name=self.name,
                     outlet_number=outlet_number + self.outlet_index_start,
                     core=core)
-                mapping[outlet_register.oid] = outlet_register
+                mapping[obj.oid] = obj
+
+        for general_feature in self.general_features:
+            obj = general_feature(
+                pdu_name=self.name,
+                core=core)
+            mapping[obj.oid] = obj
 
         self.oid_mapping = mapping

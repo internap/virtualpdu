@@ -18,8 +18,12 @@ from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
 from virtualpdu.pdu import PDUOutletControl
+from virtualpdu.pdu import sysDescr
+from virtualpdu.pdu import sysObjectID
+from virtualpdu.pdu import static_info
 
-sBTA_modules_RPC_outlet_state = (1, 3, 6, 1, 4, 1, 4779, 1, 3, 5, 3, 1, 3)
+sBTA = (1, 3, 6, 1, 4, 1, 4779)
+sBTA_modules_RPC_outlet_state = sBTA + (1, 3, 5, 3, 1, 3)
 
 
 class BaytechMRP27PDUOutletStates(BasePDUOutletStates):
@@ -49,4 +53,9 @@ class BaytechMRP27PDUOutletControl(PDUOutletControl):
 class BaytechMRP27PDU(PDU):
     outlet_count = 24
     outlet_index_start = 1
-    outlet_classes = [BaytechMRP27PDUOutletControl]
+    outlet_features = [BaytechMRP27PDUOutletControl]
+    general_features = [
+        static_info(sysDescr, univ.OctetString(
+            "Universal RPC Host Module (virtualpdu)")),
+        static_info(sysObjectID, univ.ObjectIdentifier(sBTA)),
+    ]
