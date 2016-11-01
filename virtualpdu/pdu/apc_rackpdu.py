@@ -18,13 +18,16 @@ from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
 from virtualpdu.pdu import PDUOutletControl
-from virtualpdu.pdu import PDUOutletRegister
+from virtualpdu.pdu import PDUOutletFeature
+from virtualpdu.pdu import static_info
+from virtualpdu.pdu import sysDescr
+from virtualpdu.pdu import sysObjectID
 
-rPDU_outlet_control_outlet_command = \
-    (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 3, 1, 1, 4)
 
-rPDU_outlet_config_outlet_name = \
-    (1, 3, 6, 1, 4, 1, 318, 1, 1, 12, 3, 4, 1, 1, 2)
+rPDU = (1, 3, 6, 1, 4, 1, 318, 1, 1, 12)
+rPDU_outlet_control_outlet_command = rPDU + (3, 3, 1, 1, 4)
+rPDU_outlet_config_index = rPDU + (3, 4, 1, 1, 1)
+rPDU_outlet_config_outlet_name = rPDU + (3, 4, 1, 1, 2)
 
 
 class APCRackPDUOutletStates(BasePDUOutletStates):
@@ -52,7 +55,7 @@ class APCRackPDUOutletControl(PDUOutletControl):
         self.oid = rPDU_outlet_control_outlet_command + (self.outlet_number, )
 
 
-class APCRackPDUOutletName(PDUOutletRegister):
+class APCRackPDUOutletName(PDUOutletFeature):
     states = APCRackPDUOutletStates()
 
     def __init__(self, pdu_name, outlet_number, core):
@@ -68,4 +71,8 @@ class APCRackPDUOutletName(PDUOutletRegister):
 class APCRackPDU(PDU):
     outlet_count = 8
     outlet_index_start = 1
-    outlet_classes = [APCRackPDUOutletControl, APCRackPDUOutletName]
+    outlet_features = [APCRackPDUOutletControl, APCRackPDUOutletName]
+    general_features = [
+        static_info(sysDescr, univ.OctetString("APC Rack PDU (virtualpdu)")),
+        static_info(sysObjectID, univ.ObjectIdentifier(rPDU)),
+    ]

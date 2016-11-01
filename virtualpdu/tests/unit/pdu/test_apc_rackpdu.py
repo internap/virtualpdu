@@ -13,6 +13,8 @@
 # limitations under the License.
 from pyasn1.type import univ
 from virtualpdu.pdu import apc_rackpdu
+from virtualpdu.pdu import sysDescr
+from virtualpdu.pdu import sysObjectID
 from virtualpdu.tests import base
 from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
@@ -32,4 +34,16 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
         self.assertEqual(
             univ.OctetString('Outlet #1'),
             outlet_name.value
+        )
+
+    def test_read_system_description(self):
+        self.assertEqual(
+            univ.OctetString("APC Rack PDU (virtualpdu)"),
+            self.pdu.oid_mapping[sysDescr].value
+        )
+
+    def test_read_system_oid(self):
+        self.assertEqual(
+            univ.ObjectIdentifier(apc_rackpdu.rPDU),
+            self.pdu.oid_mapping[sysObjectID].value
         )
