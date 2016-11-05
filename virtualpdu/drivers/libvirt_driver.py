@@ -43,7 +43,11 @@ class LibvirtDriver(drivers.Driver):
     def power_off(self, name):
         with self._connect() as connection:
             domain = safe_lookup_by_name(connection, name)
-            domain.destroy()
+            try:
+                domain.destroy()
+            except libvirt.libvirtError as e:
+                if 'is not running' not in str(e):
+                    raise
 
     def get_power_state(self, name):
         with self._connect() as connection:

@@ -19,7 +19,8 @@ from virtualpdu import drivers
 from virtualpdu.drivers import libvirt_driver
 from virtualpdu.tests import base
 
-DOMAIN_ALREADY_RUNNING = "internal error: Domain '%s' is already running"
+DOMAIN_ALREADY_RUNNING = "internal error: Domain {} is already running"
+DOMAIN_NOT_RUNNING = "internal error: Domain {} is not running"
 
 
 @mock.patch('libvirt.open', autospec=True)
@@ -52,6 +53,35 @@ class TestLibvirtDriver(base.TestCase):
         mock_open.assert_called_with('hello')
         connection_mock.lookupByName.assert_called_with('domainA')
         domain_mock.destroy.assert_called_with()
+        connection_mock.close.assert_called_with()
+
+    def test_power_off_domain_not_running(self, mock_open):
+        domain_name = 'domainA'
+
+        domain_mock = mock.Mock()
+        connection_mock = mock.Mock()
+        connection_mock.lookupByName.return_value = domain_mock
+
+        domain_mock.destroy.side_effect = \
+            DumbLibvirtError(DOMAIN_NOT_RUNNING.format(domain_name),
+                             conn=connection_mock)
+        mock_open.return_value = connection_mock
+
+        self.driver.power_off(domain_name)
+
+        domain_mock.destroy.assert_called_with()
+        connection_mock.close.assert_called_with()
+
+    def test_power_off_generic_error_goes_through(self, mock_open):
+        domain_mock = mock.Mock()
+        connection_mock = mock.Mock()
+        connection_mock.lookupByName.return_value = domain_mock
+
+        domain_mock.destroy.side_effect = SpecificException()
+        mock_open.return_value = connection_mock
+
+        self.assertRaises(SpecificException, self.driver.power_off, 'domainA')
+
         connection_mock.close.assert_called_with()
 
     def test_get_power_state_on(self, mock_open):
