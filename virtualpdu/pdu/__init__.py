@@ -115,6 +115,15 @@ class PDUOutletState(PDUOutletFeature):
                 outlet=self.outlet_number))
 
 
+class TraversableOidMapping(dict):
+    def next(self, to):
+        set_oid = set(self.keys())
+        set_oid.add(to)
+        sorted_oids = sorted(set_oid)
+        index = sorted_oids.index(to)
+        return sorted_oids[index+1]
+
+
 class PDU(object):
     outlet_count = 1
     outlet_index_start = 1

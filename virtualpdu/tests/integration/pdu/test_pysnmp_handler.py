@@ -77,3 +77,31 @@ class TestSNMPPDUHarness(base.TestCase):
                          mock_pdu.oid_mapping[(1, 3, 6, 98)].value)
 
         harness.stop()
+
+    def test_harness_get_next(self):
+        mock_pdu = mock.Mock()
+        port = randint(20000, 30000)
+        harness = pysnmp_handler.SNMPPDUHarness(pdu=mock_pdu,
+                                                listen_address='127.0.0.1',
+                                                listen_port=port,
+                                                community='bleh')
+
+        harness.start()
+
+        client = snmp_client.SnmpClient(oneliner_cmdgen=cmdgen,
+                                        host='127.0.0.1',
+                                        port=port,
+                                        community='bleh',
+                                        timeout=1,
+                                        retries=1)
+
+        mock_pdu.oid_mapping = dict()
+        mock_pdu.oid_mapping[(1, 3, 6, 1, 5)] = mock.Mock()
+        mock_pdu.oid_mapping[(1, 3, 6, 1, 5)].value = univ.Integer(42)
+
+        oid, val = client.get_next((1, 3, 6, 1))
+
+        self.assertEqual((1, 3, 6, 1, 5), oid)
+        self.assertEqual(42, val)
+
+        harness.stop()
