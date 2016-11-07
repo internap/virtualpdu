@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from pyasn1.type import univ
-
 from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
 from virtualpdu.pdu import PDUOutletControl
+from virtualpdu.pdu import static_info
 from virtualpdu.pdu import sysDescr
 from virtualpdu.pdu import sysObjectID
-from virtualpdu.pdu import static_info
 
 sBTA = (1, 3, 6, 1, 4, 1, 4779)
 sBTA_modules_RPC_outlet_state = sBTA + (1, 3, 5, 3, 1, 3)

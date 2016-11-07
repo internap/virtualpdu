@@ -49,3 +49,7 @@ class TestLibvirtDeviceProviderIntegration(base.TestCase):
     def test_power_off_domain_not_found(self):
         self.assertRaises(drivers.DeviceNotFound,
                           self.driver.power_off, 'i-dont-exist')
+
+    def test_get_power_domain_not_found_raises(self):
+        self.assertRaises(drivers.DeviceNotFound,
+                          self.driver.get_power_state, 'i-dont-exist')
