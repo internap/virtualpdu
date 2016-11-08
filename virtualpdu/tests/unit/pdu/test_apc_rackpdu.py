@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyasn1.type import univ
+from virtualpdu import core
 from virtualpdu.pdu import apc_rackpdu
 from virtualpdu.pdu import sysDescr
 from virtualpdu.pdu import sysObjectID
@@ -27,6 +28,12 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
     outlet_name_oid = \
         apc_rackpdu.rPDU_outlet_config_outlet_name \
         + (apc_rackpdu.APCRackPDU.outlet_index_start,)
+    outlet_config_index_oid = \
+        apc_rackpdu.rPDU_outlet_config_index \
+        + (apc_rackpdu.APCRackPDU.outlet_index_start,)
+    outlet_state_oid = \
+        apc_rackpdu.rPDU_outlet_status_outlet_state \
+        + (apc_rackpdu.APCRackPDU.outlet_index_start,)
 
     def test_read_outlet_name(self):
         outlet_name = self.pdu.oid_mapping[self.outlet_name_oid]
@@ -34,6 +41,14 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
         self.assertEqual(
             univ.OctetString('Outlet #1'),
             outlet_name.value
+        )
+
+    def test_read_outlet_config_index(self):
+        outlet_index = self.pdu.oid_mapping[self.outlet_config_index_oid]
+
+        self.assertEqual(
+            univ.Integer(1),
+            outlet_index.value
         )
 
     def test_read_system_description(self):
@@ -47,3 +62,41 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
             univ.ObjectIdentifier(apc_rackpdu.rPDU_sysObjectID),
             self.pdu.oid_mapping[sysObjectID].value
         )
+
+    def test_read_load_status_load(self):
+        self.assertEqual(
+            univ.Integer(apc_rackpdu.amp_10),
+            self.pdu.oid_mapping[apc_rackpdu.rPDU_load_status_load].value
+        )
+
+    def test_read_load_status_load_state(self):
+        self.assertEqual(
+            univ.Integer(apc_rackpdu.phase_load_normal),
+            self.pdu.oid_mapping[apc_rackpdu.rPDU_load_status_load_state].value
+        )
+
+    def test_read_state_power_on(self):
+        outlet_control = self.pdu.oid_mapping[self.outlet_state_oid]
+        self.core_mock.get_pdu_outlet_state.return_value = core.POWER_ON
+
+        self.assertEqual(
+            outlet_control.states.from_core(core.POWER_ON),
+            outlet_control.value
+        )
+
+        self.core_mock.get_pdu_outlet_state.assert_called_with(
+            pdu='my_pdu',
+            outlet=1)
+
+    def test_read_state_power_off(self):
+        outlet_control = self.pdu.oid_mapping[self.outlet_state_oid]
+        self.core_mock.get_pdu_outlet_state.return_value = core.POWER_OFF
+
+        self.assertEqual(
+            outlet_control.states.from_core(core.POWER_OFF),
+            outlet_control.value
+        )
+
+        self.core_mock.get_pdu_outlet_state.assert_called_with(
+            pdu='my_pdu',
+            outlet=1)
