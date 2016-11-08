@@ -44,6 +44,6 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
 
     def test_read_system_oid(self):
         self.assertEqual(
-            univ.ObjectIdentifier(apc_rackpdu.rPDU),
+            univ.ObjectIdentifier(apc_rackpdu.rPDU_sysObjectID),
             self.pdu.oid_mapping[sysObjectID].value
         )
