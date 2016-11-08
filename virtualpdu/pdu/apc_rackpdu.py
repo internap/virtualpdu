@@ -24,6 +24,8 @@ from virtualpdu.pdu import sysDescr
 from virtualpdu.pdu import sysObjectID
 
 
+rPDU_sysObjectID = (1, 3, 6, 1, 4, 1, 318, 1, 3, 4, 6)
+
 rPDU = (1, 3, 6, 1, 4, 1, 318, 1, 1, 12)
 rPDU_outlet_control_outlet_command = rPDU + (3, 3, 1, 1, 4)
 rPDU_outlet_config_index = rPDU + (3, 4, 1, 1, 1)
@@ -74,5 +76,5 @@ class APCRackPDU(PDU):
     outlet_features = [APCRackPDUOutletControl, APCRackPDUOutletName]
     general_features = [
         static_info(sysDescr, univ.OctetString("APC Rack PDU (virtualpdu)")),
-        static_info(sysObjectID, univ.ObjectIdentifier(rPDU)),
+        static_info(sysObjectID, univ.ObjectIdentifier(rPDU_sysObjectID)),
     ]
