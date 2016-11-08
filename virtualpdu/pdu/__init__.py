@@ -101,6 +101,20 @@ class PDUOutletControl(PDUOutletFeature):
             state=self.states.to_core(state))
 
 
+class PDUOutletState(PDUOutletFeature):
+    states = PDUOutletStates()
+
+    def __init__(self, pdu_name, outlet_number, core):
+        super(PDUOutletState, self).__init__(pdu_name, outlet_number, core)
+
+    @property
+    def value(self):
+        return self.states.from_core(
+            self.core.get_pdu_outlet_state(
+                pdu=self.pdu_name,
+                outlet=self.outlet_number))
+
+
 class PDU(object):
     outlet_count = 1
     outlet_index_start = 1
