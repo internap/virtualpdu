@@ -121,7 +121,7 @@ class TraversableOidMapping(dict):
         set_oid.add(to)
         sorted_oids = sorted(set_oid)
         index = sorted_oids.index(to)
-        return sorted_oids[index+1]
+        return sorted_oids[index + 1]
 
 
 class PDU(object):

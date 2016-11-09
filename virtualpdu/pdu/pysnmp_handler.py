@@ -74,12 +74,13 @@ class SNMPPDUHandler(object):
                 for oid, val in protocol.apiPDU.getVarBinds(request_pdus):
                     error_index += 1
                     try:
-                        oid = TraversableOidMapping(self.pdu.oid_mapping).next(to=oid)
+                        oid = TraversableOidMapping(self.pdu.oid_mapping)\
+                            .next(to=oid)
                         val = self.pdu.oid_mapping[oid].value
                     except (KeyError, IndexError):
                         pending_errors.append(
-                                (protocol.apiPDU.setNoSuchInstanceError,
-                                 error_index)
+                            (protocol.apiPDU.setNoSuchInstanceError,
+                             error_index)
                         )
                     var_binds.append((oid, val))
             elif request_pdus.isSameTypeWith(protocol.SetRequestPDU()):

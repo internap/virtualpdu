@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from pyasn1.type import univ
+
 from virtualpdu import core
 from virtualpdu.pdu import BasePDUOutletStates
 from virtualpdu.pdu import PDU
