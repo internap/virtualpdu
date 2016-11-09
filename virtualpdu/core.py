@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from concurrent.futures import ThreadPoolExecutor
 import logging
 
 POWER_ON = 'POWER_ON'
@@ -42,13 +43,25 @@ class Core(object):
         except KeyError:
             return
 
+        self._async_change(device, state)
+
+    def _async_change(self, device, state):
         if state == POWER_ON:
-            self.driver.power_on(device)
+            def switch_power():
+                self.driver.power_on(device)
         elif state == POWER_OFF:
-            self.driver.power_off(device)
+            def switch_power():
+                self.driver.power_off(device)
         elif state == REBOOT:
-            self.driver.power_off(device)
-            self.driver.power_on(device)
+            def switch_power():
+                self.driver.power_off(device)
+                self.driver.power_on(device)
+        else:
+            self.logger.error("Unknown power state: {}".format(state))
+            return
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(switch_power)
 
     def get_pdu_outlet_state(self, pdu, outlet):
         try:

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyasn1.type import univ
-
 from virtualpdu.pdu import baytech_mrp27
-from virtualpdu.pdu import sysObjectID
 from virtualpdu.pdu import sysDescr
+from virtualpdu.pdu import sysObjectID
 from virtualpdu.tests import base
 from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
