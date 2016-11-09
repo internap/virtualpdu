@@ -26,6 +26,7 @@ class Core(object):
         self.store = store
         self.default_state = default_state
         self.logger = logging.getLogger(__name__)
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
     def pdu_outlet_state_changed(self, pdu, outlet, state):
         self.store[(pdu, outlet)] = state
@@ -60,8 +61,7 @@ class Core(object):
             self.logger.error("Unknown power state: {}".format(state))
             return
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            executor.submit(switch_power)
+        self.executor.submit(switch_power)
 
     def get_pdu_outlet_state(self, pdu, outlet):
         try:
