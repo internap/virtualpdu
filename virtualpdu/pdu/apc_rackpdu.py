@@ -100,11 +100,12 @@ class APCRackPDUOutletConfigIndex(PDUOutletFeature):
 class APCRackPDU(PDU):
     outlet_count = 8
     outlet_index_start = 1
-    outlet_features = [APCRackPDUOutletControl, APCRackPDUOutletName, APCRackPDUOutletConfigIndex,
-                       APCRackPDUOutletState]
+    outlet_features = [APCRackPDUOutletControl, APCRackPDUOutletName,
+                       APCRackPDUOutletConfigIndex, APCRackPDUOutletState]
     general_features = [
         static_info(sysDescr, univ.OctetString("APC Rack PDU (virtualpdu)")),
         static_info(sysObjectID, univ.ObjectIdentifier(rPDU_sysObjectID)),
         static_info(rPDU_load_status_load, univ.Integer(amp_10)),
-        static_info(rPDU_load_status_load_state, univ.Integer(phase_load_normal))
+        static_info(rPDU_load_status_load_state,
+                    univ.Integer(phase_load_normal))
     ]
