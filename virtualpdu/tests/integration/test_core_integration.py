@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import random
+import time
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
-
 from virtualpdu import core
 from virtualpdu import drivers
 from virtualpdu.drivers import libvirt_driver
@@ -67,12 +67,16 @@ class TestCoreIntegration(base.TestCase):
         snmp_client_.set(
             self.outlet_oid,
             apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_OFF)
+
+        time.sleep(0.1)
         self.assertEqual(drivers.POWER_OFF,
                          self.driver.get_power_state('test'))
 
         snmp_client_.set(
             self.outlet_oid,
             apc_rackpdu.APCRackPDUOutletControl.states.IMMEDIATE_ON)
+
+        time.sleep(0.1)
         self.assertEqual(drivers.POWER_ON,
                          self.driver.get_power_state('test'))
 

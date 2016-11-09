@@ -36,7 +36,7 @@ class TestCore(base.TestCase):
         self.core.pdu_outlet_state_changed(pdu='my_pdu',
                                            outlet=1,
                                            state=core.POWER_OFF)
-        time.sleep(0)
+        time.sleep(0.1)
         self.driver_mock.power_off.assert_called_with('server_one')
 
     def test_pdu_outlet_state_changed_machine_not_in_mapping_noop(self):
@@ -51,14 +51,14 @@ class TestCore(base.TestCase):
         self.core.pdu_outlet_state_changed(pdu='my_pdu',
                                            outlet=1,
                                            state=core.POWER_ON)
-        time.sleep(0)
+        time.sleep(0.1)
         self.driver_mock.power_on.assert_called_with('server_one')
 
     def test_pdu_outlet_state_changed_on_reboot(self):
         self.core.pdu_outlet_state_changed(pdu='my_pdu',
                                            outlet=1,
                                            state=core.REBOOT)
-        time.sleep(0)
+        time.sleep(0.1)
         self.driver_mock.assert_has_calls([mock.call.power_off('server_one'),
                                            mock.call.power_on('server_one')])
 
