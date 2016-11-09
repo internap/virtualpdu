@@ -21,11 +21,13 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
 from pysnmp.proto import api
 
-
 # NOTE(mmitchell): Roughly from implementing-scalar-mib-objects.py in pysnmp.
 # Unfortunately, that file is not part of the pysnmp package and re-use is
 # not possible.
 # pysnmp is distributed under the BSD license.
+
+from virtualpdu.pdu import TraversableOidMapping
+
 
 class SNMPPDUHandler(object):
     def __init__(self, pdu, community):
@@ -68,6 +70,18 @@ class SNMPPDUHandler(object):
                             (oid, self.pdu.oid_mapping[oid].value))
                     else:
                         return
+            elif request_pdus.isSameTypeWith(protocol.GetNextRequestPDU()):
+                for oid, val in protocol.apiPDU.getVarBinds(request_pdus):
+                    error_index += 1
+                    try:
+                        oid = TraversableOidMapping(self.pdu.oid_mapping).next(to=oid)
+                        val = self.pdu.oid_mapping[oid].value
+                    except (KeyError, IndexError):
+                        pending_errors.append(
+                                (protocol.apiPDU.setNoSuchInstanceError,
+                                 error_index)
+                        )
+                    var_binds.append((oid, val))
             elif request_pdus.isSameTypeWith(protocol.SetRequestPDU()):
                 for oid, val in protocol.apiPDU.getVarBinds(request_pdus):
                     error_index += 1

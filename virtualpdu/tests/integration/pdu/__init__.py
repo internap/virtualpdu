@@ -50,6 +50,15 @@ class PDUTestCase(base.TestCase):
                                    retries=1)
         return s.get_one(oid)
 
+    def snmp_get_next(self, oid, community=None):
+        s = snmp_client.SnmpClient(cmdgen,
+                                   self.pdu_test_harness.listen_address,
+                                   self.pdu_test_harness.listen_port,
+                                   community or self.community,
+                                   timeout=1,
+                                   retries=1)
+        return s.get_next(oid)
+
     def snmp_set(self, oid, value, community=None):
         s = snmp_client.SnmpClient(cmdgen,
                                    self.pdu_test_harness.listen_address,

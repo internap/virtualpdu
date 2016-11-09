@@ -42,6 +42,17 @@ class SnmpClient(object):
         name, val = var_binds[0]
         return val
 
+    def get_next(self, oid):
+        error_indication, error_status, error_index, var_binds = \
+            self.command_generator.nextCmd(self.community_data,
+                                           self.transport,
+                                           oid)
+
+        self._handle_error_indication(error_indication)
+        for varBindTableRow in var_binds:
+            for name, val in varBindTableRow:
+                return name, val
+
     def set(self, oid, value):
         error_indication, error_status, error_index, var_binds = \
             self.command_generator.setCmd(self.community_data,
