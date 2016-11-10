@@ -95,10 +95,10 @@ class PDUOutletControl(PDUOutletFeature):
 
     @value.setter
     def value(self, state):
-        self.core.pdu_outlet_state_changed(
+        self.core.set_pdu_outlet_command(
             pdu=self.pdu_name,
             outlet=self.outlet_number,
-            state=self.states.to_core(state))
+            command=self.states.to_core(state))
 
 
 class PDUOutletState(PDUOutletFeature):

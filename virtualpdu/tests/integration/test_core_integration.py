@@ -60,7 +60,7 @@ class TestCoreIntegration(base.TestCase):
                                       timeout=1,
                                       retries=1)
 
-    def test_pdu_outlet_state_changed_on_power_off(self):
+    def test_set_pdu_outlet_command_on_power_off(self):
         pdu = apc_rackpdu.APCRackPDU('my_pdu', self.core)
         snmp_client_ = self.get_harness_client(pdu)
 

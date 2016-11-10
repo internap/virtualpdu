@@ -18,6 +18,12 @@ POWER_ON = 'POWER_ON'
 POWER_OFF = 'POWER_OFF'
 REBOOT = 'REBOOT'
 
+command_state_mapping = {
+    POWER_ON: POWER_ON,
+    POWER_OFF: POWER_OFF,
+    REBOOT: POWER_ON
+}
+
 
 class Core(object):
     def __init__(self, driver, mapping, store, default_state):
@@ -28,11 +34,11 @@ class Core(object):
         self.logger = logging.getLogger(__name__)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
-    def pdu_outlet_state_changed(self, pdu, outlet, state):
-        self.store[(pdu, outlet)] = state
+    def set_pdu_outlet_command(self, pdu, outlet, command):
+        self.store[(pdu, outlet)] = command_state_mapping[command]
 
-        self.logger.info("PDU '{}', outlet '{}' has new state: '{}'".format(
-            pdu, outlet, state)
+        self.logger.info("PDU '{}', outlet '{}' has new command: '{}'".format(
+            pdu, outlet, command)
         )
         try:
             device = self._get_device(pdu, outlet)
@@ -44,21 +50,21 @@ class Core(object):
         except KeyError:
             return
 
-        self._async_change(device, state)
+        self._async_change(device, command)
 
-    def _async_change(self, device, state):
-        if state == POWER_ON:
+    def _async_change(self, device, command):
+        if command == POWER_ON:
             def switch_power():
                 self.driver.power_on(device)
-        elif state == POWER_OFF:
+        elif command == POWER_OFF:
             def switch_power():
                 self.driver.power_off(device)
-        elif state == REBOOT:
+        elif command == REBOOT:
             def switch_power():
                 self.driver.power_off(device)
                 self.driver.power_on(device)
         else:
-            self.logger.error("Unknown power state: {}".format(state))
+            self.logger.error("Unknown power command: {}".format(command))
             return
 
         self.executor.submit(switch_power)
