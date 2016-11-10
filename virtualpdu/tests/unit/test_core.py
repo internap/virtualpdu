@@ -32,35 +32,43 @@ class TestCore(base.TestCase):
         self.core = core.Core(driver=self.driver_mock, mapping=mapping,
                               store=self.store, default_state=core.POWER_ON)
 
-    def test_pdu_outlet_state_changed_on_power_off(self):
-        self.core.pdu_outlet_state_changed(pdu='my_pdu',
-                                           outlet=1,
-                                           state=core.POWER_OFF)
+    def test_set_pdu_outlet_command_on_power_off(self):
+        self.core.set_pdu_outlet_command(pdu='my_pdu',
+                                         outlet=1,
+                                         command=core.POWER_OFF)
         time.sleep(0.1)
         self.driver_mock.power_off.assert_called_with('server_one')
 
-    def test_pdu_outlet_state_changed_machine_not_in_mapping_noop(self):
-        self.core.pdu_outlet_state_changed(pdu='my_pdu',
-                                           outlet=2,
-                                           state=core.POWER_OFF)
+    def test_set_pdu_outlet_command_machine_not_in_mapping_noop(self):
+        self.core.set_pdu_outlet_command(pdu='my_pdu',
+                                         outlet=2,
+                                         command=core.POWER_OFF)
 
         self.assertFalse(self.driver_mock.power_off.called)
         self.assertFalse(self.driver_mock.power_on.called)
 
-    def test_pdu_outlet_state_changed_on_power_on(self):
-        self.core.pdu_outlet_state_changed(pdu='my_pdu',
-                                           outlet=1,
-                                           state=core.POWER_ON)
+    def test_set_pdu_outlet_command_on_power_on(self):
+        self.core.set_pdu_outlet_command(pdu='my_pdu',
+                                         outlet=1,
+                                         command=core.POWER_ON)
         time.sleep(0.1)
         self.driver_mock.power_on.assert_called_with('server_one')
 
-    def test_pdu_outlet_state_changed_on_reboot(self):
-        self.core.pdu_outlet_state_changed(pdu='my_pdu',
-                                           outlet=1,
-                                           state=core.REBOOT)
+    def test_set_pdu_outlet_command_on_reboot(self):
+        self.core.set_pdu_outlet_command(pdu='my_pdu',
+                                         outlet=1,
+                                         command=core.REBOOT)
         time.sleep(0.1)
         self.driver_mock.assert_has_calls([mock.call.power_off('server_one'),
                                            mock.call.power_on('server_one')])
+
+    def test_set_pdu_outlet_command_on_reboot_will_set_state_on(self):
+        self.core.set_pdu_outlet_command(pdu='my_pdu',
+                                         outlet=1,
+                                         command=core.REBOOT)
+        self.assertEqual(
+            core.POWER_ON,
+            self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1))
 
     def test_pdu_outlet_state_on_cached_state(self):
         self.store[('my_pdu', 1)] = core.POWER_OFF

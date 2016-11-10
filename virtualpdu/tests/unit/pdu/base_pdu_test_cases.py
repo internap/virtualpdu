@@ -33,30 +33,30 @@ class BasePDUTests(object):
         outlet_control.value = \
             outlet_control.states.from_core(core.POWER_ON)
 
-        self.core_mock.pdu_outlet_state_changed.assert_called_with(
+        self.core_mock.set_pdu_outlet_command.assert_called_with(
             pdu='my_pdu',
             outlet=1,
-            state=core.POWER_ON)
+            command=core.POWER_ON)
 
     def test_reboot_notifies_core(self):
         outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
         outlet_control.value = \
             outlet_control.states.from_core(core.REBOOT)
 
-        self.core_mock.pdu_outlet_state_changed.assert_called_with(
+        self.core_mock.set_pdu_outlet_command.assert_called_with(
             pdu='my_pdu',
             outlet=1,
-            state=core.REBOOT)
+            command=core.REBOOT)
 
     def test_power_off_notifies_core(self):
         outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
         outlet_control.value = \
             outlet_control.states.from_core(core.POWER_OFF)
 
-        self.core_mock.pdu_outlet_state_changed.assert_called_with(
+        self.core_mock.set_pdu_outlet_command.assert_called_with(
             pdu='my_pdu',
             outlet=1,
-            state=core.POWER_OFF)
+            command=core.POWER_OFF)
 
     def test_read_power_on(self):
         outlet_control = self.pdu.oid_mapping[self.outlet_control_oid]
