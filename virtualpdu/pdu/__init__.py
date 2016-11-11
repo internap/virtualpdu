@@ -130,7 +130,9 @@ class PDU(object):
     outlet_features = [PDUOutletControl]
     general_features = []
 
-    def __init__(self, name, core):
+    def __init__(self, name, core, outlet_count=None):
+        if outlet_count is not None:
+            self.outlet_count = outlet_count
         self.name = name
 
         mapping = {}

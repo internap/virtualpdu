@@ -98,7 +98,7 @@ class APCRackPDUOutletConfigIndex(PDUOutletFeature):
 
 
 class APCRackPDU(PDU):
-    outlet_count = 8
+    outlet_count = 24
     outlet_index_start = 1
     outlet_features = [APCRackPDUOutletControl, APCRackPDUOutletName,
                        APCRackPDUOutletConfigIndex, APCRackPDUOutletState]

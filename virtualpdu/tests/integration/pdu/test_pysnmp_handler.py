@@ -105,3 +105,17 @@ class TestSNMPPDUHarness(base.TestCase):
         self.assertEqual(42, val)
 
         harness.stop()
+
+    def test_start_stop_threadsafety(self):
+        mock_pdu = mock.Mock()
+        port = randint(20000, 30000)
+        harness = pysnmp_handler.SNMPPDUHarness(pdu=mock_pdu,
+                                                listen_address='127.0.0.1',
+                                                listen_port=port,
+                                                community='bleh')
+
+        harness.start()
+        harness.stop()
+        harness.join(timeout=5)
+
+        self.assertFalse(harness.isAlive())

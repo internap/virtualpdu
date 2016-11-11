@@ -22,6 +22,7 @@ from virtualpdu.tests.unit.pdu.base_pdu_test_cases import BasePDUTests
 
 class TestAPCRackPDU(base.TestCase, BasePDUTests):
     pdu_class = apc_rackpdu.APCRackPDU
+    outlet_control_class = apc_rackpdu.APCRackPDUOutletControl
     outlet_control_oid = \
         apc_rackpdu.rPDU_outlet_control_outlet_command \
         + (apc_rackpdu.APCRackPDU.outlet_index_start,)
@@ -100,3 +101,17 @@ class TestAPCRackPDU(base.TestCase, BasePDUTests):
         self.core_mock.get_pdu_outlet_state.assert_called_with(
             pdu='my_pdu',
             outlet=1)
+
+    def test_as_many_outlets_as_specified_by_constructor(self):
+        pdu = self.pdu_class(name='test_pdu',
+                             core=self.core_mock,
+                             outlet_count=10)
+        self.assertEqual(10, pdu.outlet_count)
+        self.assertEqual(10, len([oid for oid in pdu.oid_mapping.values()
+                                  if type(oid) is self.outlet_control_class]))
+
+    def test_as_many_outlets_as_specified_by_type(self):
+        self.assertEqual(self.pdu_class.outlet_count, self.pdu.outlet_count)
+        self.assertEqual(self.pdu_class.outlet_count,
+                         len([oid for oid in self.pdu.oid_mapping.values()
+                              if type(oid) is self.outlet_control_class]))

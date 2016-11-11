@@ -127,21 +127,28 @@ class SNMPPDUHarness(threading.Thread):
         self.listen_port = listen_port
         self.transportDispatcher = AsyncoreDispatcher()
 
+        self._lock = threading.Lock()
+        self._stop_requested = False
+
     def run(self):
-        self.logger.info("Starting PDU '{}' on {}:{}".format(
-            self.pdu.name, self.listen_address, self.listen_port)
-        )
-        self.transportDispatcher.registerRecvCbFun(
-            self.snmp_handler.message_handler)
+        with self._lock:
+            if self._stop_requested:
+                return
 
-        # UDP/IPv4
-        self.transportDispatcher.registerTransport(
-            udp.domainName,
-            udp.UdpSocketTransport().openServerMode(
-                (self.listen_address, self.listen_port))
-        )
+            self.logger.info("Starting PDU '{}' on {}:{}".format(
+                self.pdu.name, self.listen_address, self.listen_port)
+            )
+            self.transportDispatcher.registerRecvCbFun(
+                self.snmp_handler.message_handler)
 
-        self.transportDispatcher.jobStarted(1)
+            # UDP/IPv4
+            self.transportDispatcher.registerTransport(
+                udp.domainName,
+                udp.UdpSocketTransport().openServerMode(
+                    (self.listen_address, self.listen_port))
+            )
+
+            self.transportDispatcher.jobStarted(1)
 
         try:
             # Dispatcher will never finish as job#1 never reaches zero
@@ -150,4 +157,9 @@ class SNMPPDUHarness(threading.Thread):
             self.transportDispatcher.closeDispatcher()
 
     def stop(self):
-        self.transportDispatcher.jobFinished(1)
+        with self._lock:
+            self._stop_requested = True
+            try:
+                self.transportDispatcher.jobFinished(1)
+            except KeyError:
+                pass  # The job is not started yet and will not start
