@@ -26,7 +26,7 @@ from virtualpdu.pdu import apc_rackpdu
 from virtualpdu.pdu import pysnmp_handler
 
 MISSING_CONFIG_MESSAGE = 'Missing configuration file as first parameter.\n'
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
 
 def main():
