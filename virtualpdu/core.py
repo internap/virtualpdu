@@ -18,12 +18,6 @@ POWER_ON = 'POWER_ON'
 POWER_OFF = 'POWER_OFF'
 REBOOT = 'REBOOT'
 
-command_state_mapping = {
-    POWER_ON: POWER_ON,
-    POWER_OFF: POWER_OFF,
-    REBOOT: POWER_ON
-}
-
 
 class Core(object):
     def __init__(self, driver, mapping, store, default_state):
@@ -35,8 +29,6 @@ class Core(object):
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     def set_pdu_outlet_command(self, pdu, outlet, command):
-        self.store[(pdu, outlet)] = command_state_mapping[command]
-
         self.logger.info("PDU '{}', outlet '{}' has new command: '{}'".format(
             pdu, outlet, command)
         )
@@ -47,27 +39,30 @@ class Core(object):
                 "Found server '{}' on PDU '{}' outlet '{}'".format(
                     device, pdu, outlet)
             )
+            self.executor.submit(self._switch_power, command,
+                                 device, pdu, outlet)
         except KeyError:
-            return
+            self.store[(pdu, outlet)] = {
+                POWER_ON: POWER_ON,
+                POWER_OFF: POWER_OFF,
+                REBOOT: POWER_ON
+            }[command]
 
-        self._async_change(device, command)
-
-    def _async_change(self, device, command):
+    def _switch_power(self, command, device, pdu, outlet):
         if command == POWER_ON:
-            def switch_power():
-                self.driver.power_on(device)
+            self.driver.power_on(device)
+            self.store[(pdu, outlet)] = POWER_ON
         elif command == POWER_OFF:
-            def switch_power():
-                self.driver.power_off(device)
+            self.driver.power_off(device)
+            self.store[(pdu, outlet)] = POWER_OFF
         elif command == REBOOT:
-            def switch_power():
-                self.driver.power_off(device)
-                self.driver.power_on(device)
+            self.driver.power_off(device)
+            self.store[(pdu, outlet)] = POWER_OFF
+            self.driver.power_on(device)
+            self.store[(pdu, outlet)] = POWER_ON
         else:
             self.logger.error("Unknown power command: {}".format(command))
             return
-
-        self.executor.submit(switch_power)
 
     def get_pdu_outlet_state(self, pdu, outlet):
         try:
