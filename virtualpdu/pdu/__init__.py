@@ -20,11 +20,11 @@ from virtualpdu import core
 logger = logging.getLogger(__name__)
 
 # A textual description of the entity.
-sysDescr = (1, 3, 6, 1, 2, 1, 1, 1)
+sysDescr = (1, 3, 6, 1, 2, 1, 1, 1, 0)
 
 # The vendor's authoritative identification of the network management
 # subsystem contained in the entity.
-sysObjectID = (1, 3, 6, 1, 2, 1, 1, 2)
+sysObjectID = (1, 3, 6, 1, 2, 1, 1, 2, 0)
 
 
 class PDUFeature(object):
