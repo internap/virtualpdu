@@ -35,7 +35,7 @@ class TestTransitiveState(base.TestCase):
         threading_event.set()
         self.core.executor.shutdown(True)
 
-    def test_transitive_state_is_on_when_power_off(self):
+    def test_transitive_state_is_off_when_power_off(self):
         self.driver_mock.get_power_state.return_value = drivers.POWER_ON
         driver_can_continue = threading.Event()
         self.driver_mock.power_off.side_effect = \
@@ -47,14 +47,14 @@ class TestTransitiveState(base.TestCase):
 
         self.assertEqual(
             self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1),
-            core.POWER_ON)
+            core.POWER_OFF)
 
         self._set_flag_and_yield(driver_can_continue)
         self.assertEqual(
             self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1),
             core.POWER_OFF)
 
-    def test_transitive_state_is_off_when_power_on(self):
+    def test_transitive_state_is_on_when_power_on(self):
         self.driver_mock.get_power_state.return_value = drivers.POWER_OFF
         driver_can_continue = threading.Event()
         self.driver_mock.power_on.side_effect = \
@@ -66,19 +66,19 @@ class TestTransitiveState(base.TestCase):
 
         self.assertEqual(
             self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1),
-            core.POWER_OFF)
+            core.POWER_ON)
 
         self._set_flag_and_yield(driver_can_continue)
         self.assertEqual(
             self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1),
             core.POWER_ON)
 
-    def test_transitive_state_is_off_when_reboot(self):
-        def assert_transitive_state_is_off(_):
+    def test_transitive_state_is_on_when_reboot(self):
+        def assert_transitive_state_is_on(_):
             self.assertEqual(
                 self.core.get_pdu_outlet_state(pdu='my_pdu', outlet=1),
-                core.POWER_OFF)
-        self.driver_mock.power_on.side_effect = assert_transitive_state_is_off
+                core.POWER_ON)
+        self.driver_mock.power_on.side_effect = assert_transitive_state_is_on
 
         self.core.set_pdu_outlet_command(pdu='my_pdu',
                                          outlet=1,
