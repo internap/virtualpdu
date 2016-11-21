@@ -18,6 +18,12 @@ POWER_ON = 'POWER_ON'
 POWER_OFF = 'POWER_OFF'
 REBOOT = 'REBOOT'
 
+FINAL_STATES = {
+    POWER_ON: POWER_ON,
+    POWER_OFF: POWER_OFF,
+    REBOOT: POWER_ON
+}
+
 
 class Core(object):
     def __init__(self, driver, mapping, store, default_state):
@@ -32,6 +38,9 @@ class Core(object):
         self.logger.info("PDU '{}', outlet '{}' has new command: '{}'".format(
             pdu, outlet, command)
         )
+
+        self.store[(pdu, outlet)] = FINAL_STATES[command]
+
         try:
             device = self._get_device(pdu, outlet)
 
@@ -39,26 +48,18 @@ class Core(object):
                 "Found server '{}' on PDU '{}' outlet '{}'".format(
                     device, pdu, outlet)
             )
-            self.executor.submit(self._switch_power, command,
-                                 device, pdu, outlet)
-        except KeyError:
-            self.store[(pdu, outlet)] = {
-                POWER_ON: POWER_ON,
-                POWER_OFF: POWER_OFF,
-                REBOOT: POWER_ON
-            }[command]
 
-    def _switch_power(self, command, device, pdu, outlet):
+            self.executor.submit(self._switch_power, command, device)
+        except KeyError:
+            pass
+
+    def _switch_power(self, command, device):
         if command == POWER_ON:
-            self.store[(pdu, outlet)] = POWER_ON
             self.driver.power_on(device)
         elif command == POWER_OFF:
-            self.store[(pdu, outlet)] = POWER_OFF
             self.driver.power_off(device)
         elif command == REBOOT:
-            self.store[(pdu, outlet)] = POWER_OFF
             self.driver.power_off(device)
-            self.store[(pdu, outlet)] = POWER_ON
             self.driver.power_on(device)
         else:
             self.logger.error("Unknown power command: {}".format(command))
