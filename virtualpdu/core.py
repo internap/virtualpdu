@@ -50,16 +50,16 @@ class Core(object):
 
     def _switch_power(self, command, device, pdu, outlet):
         if command == POWER_ON:
-            self.driver.power_on(device)
             self.store[(pdu, outlet)] = POWER_ON
+            self.driver.power_on(device)
         elif command == POWER_OFF:
-            self.driver.power_off(device)
             self.store[(pdu, outlet)] = POWER_OFF
+            self.driver.power_off(device)
         elif command == REBOOT:
-            self.driver.power_off(device)
             self.store[(pdu, outlet)] = POWER_OFF
-            self.driver.power_on(device)
+            self.driver.power_off(device)
             self.store[(pdu, outlet)] = POWER_ON
+            self.driver.power_on(device)
         else:
             self.logger.error("Unknown power command: {}".format(command))
             return
